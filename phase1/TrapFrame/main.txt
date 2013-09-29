@@ -1,0 +1,49 @@
+// TrapFrame/main.txt, 159
+//
+// a skeleton of main() for the solution of phase 1
+
+some include statements...
+then declare global data structures...
+
+void main()
+{
+   Call InitData() to initialize kernel data structure like in SimulCode
+
+   Call (a new routine) InitControl() for setting up the timer interrupt
+   (take from what's learned in the timer lab)
+
+   Spawn the IdleProc (PID 0). Creation of a process includes the
+      initialization of its trapframe in the user process stack
+
+   cur_pid = 0; // select IdleProc, the only available process to run
+   Loader(pcbs[0].tf_p);
+}
+
+
+void Kernel(tf_t *tf_p) // kernel directly enters here when interrupt occurs
+{
+   Save "tf_p" to pcbs[cur_pid].tf_p for future resume of process runtime
+   
+// tf_p->intr_id tells what intr made CPU get here, pushed in entry.S
+   switch(tf_p->intr_id)
+   {
+      case TIMER_INTR:
+         TimerISR(); // this must include dismissal of timer interrupt
+         break;
+   }
+
+// still handles other keyboard-generated simulated events
+   if(cons_kbhit()) // check if a key was pressed (returns non zero)
+   {
+      Use cons_getchar() to get the key pressed (char type)
+
+      switch(key)
+      {
+// on the type of key pressed, perform the associated ISR
+// but _NO_ TimerISR here (which occurs by itself automatically)
+      }
+   } // if(cons_kbhit())
+
+   Scheduler();                // select a process to run
+   Loader(pcbs[cur_pid].tf_p); // run the process selected
+}

@@ -1,0 +1,47 @@
+// replacements.txt, 159
+
+//********************************************************************
+// this function replaces the old definition in the source file isr.c.
+//********************************************************************
+void SpawnISR(int pid)
+{
+//????????????????????????????????????????????????????????????????????
+// clear run-time stack by zero-filling it (privacy + security)
+// C lib help: bzero((void *)user_stacks[pid], USER_STACK_SIZE);
+// since bzero's service which we should code ourselves, we should
+// code our own (use your own subroutine MyBzero coded into isr.c)
+//????????????????????????????????????????????????????????????????????
+
+// 1st. point to just above of user stack, then drop by 64 bytes (tf_t)
+   pcbs[pid].tf_p = (tf_t *)&user_stacks[pid][USER_STACK_SIZE];
+   pcbs[pid].tf_p--;    // pointer arithmetic, now points to trapframe
+
+// fill in CPU's register context
+   pcbs[pid].tf_p->eflags = EF_DEFAULT_VALUE|EF_INTR;
+   pcbs[pid].tf_p->eip = (unsigned int)SimpleProc; // new process code
+   pcbs[pid].tf_p->cs = get_cs();
+   pcbs[pid].tf_p->ds = get_ds();
+   pcbs[pid].tf_p->es = get_es();
+   pcbs[pid].tf_p->fs = get_fs();
+   pcbs[pid].tf_p->gs = get_gs();
+
+   pcbs[pid].tick_count = pcbs[pid].total_tick_count = 0;
+   pcbs[pid].state = READY;
+
+   if(pid != 0) EnQ(pid, &ready_q);  // IdleProc (PID 0) is not queued
+}
+
+
+//*********************************************************************
+// this function replaces the old definition in the source file proc.c.
+//*********************************************************************
+void SimpleProc()
+{
+   int i;
+
+   while(1)
+   {
+      cons_printf("%d ", cur_pid);
+      for(i=0;i<1666000;i++) IO_DELAY(); // delay for about 1 sec
+   }
+}

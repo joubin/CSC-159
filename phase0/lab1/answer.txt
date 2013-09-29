@@ -1,0 +1,21 @@
+The commands in .LM1 sets up the stack. 
+
+The command in .LM3 puts the constant 128 on the stack.
+
+Inside .LM4:
+	First line moves the 128 from above into %edx
+	Second line moves %edx into %eax, so both contain 128
+	Third adds %eax (128) to %edx (also 128), so %edx is now 256
+	Fourth pushes that 256 onto the stack
+	Fifth pushes the string "%d Hello world %d \nECS" onto the stack
+	Sixth calls the prinf function to print the string on the local console.
+
+Inside .LM5:
+	First line pushes "--> Hello world <--\nCPE/CSC" onto the stack
+	Second calls cons_printf to print the string on the remote console
+
+Inside .LM6:
+	Jump to .L1
+
+Inside .L1:
+	Finish up and return
