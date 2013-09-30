@@ -1,3 +1,6 @@
 *.o
 *.dli
 .accessed
+*~
+GDB159.RC
+*.swp
