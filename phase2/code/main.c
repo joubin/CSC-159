@@ -34,17 +34,17 @@ void main()
    SpawnISR(0, IdleProc); // create IdleProc for OS to run if no user processes
 
    cur_pid = 0;
-   EI();
+
    Loader(pcbs[0].tf_p);
 }
 
 void InitControl()
 {
    idt_table = get_idt_base();
-   SetIDTEntry(32, TimerEntry);
-   SetIDTEntry(31, SleepEntry);
-   SetIDTEntry(30, GetPidEntry);
-   outportb(0x21, ~0x01);
+   SetIDTEntry(0x20, TimerEntry);
+   SetIDTEntry(0x31, SleepEntry);
+   SetIDTEntry(0x30, GetPidEntry);
+   outportb(0x21, ~0x11);
 
 }
 
