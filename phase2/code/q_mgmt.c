@@ -11,7 +11,7 @@ int EmptyQ(q_t *p)
 
 int FullQ(q_t *p)
 {
-	return (p->count == NUM_PROC);
+	return (p->count == Q_SIZE);
 }
 
 void InitQ(q_t *p)
@@ -26,6 +26,7 @@ int DeQ(q_t *p) // return -1 if q is empty
 	int pid;
 
 	if (EmptyQ(p)) {
+		cons_printf("Queue is empty, can't dequeue!\n");
 		return -1;
 	}
 	
@@ -33,7 +34,7 @@ int DeQ(q_t *p) // return -1 if q is empty
 	
 	p->head += 1;
 
-	if (p->head >= NUM_PROC) {
+	if (p->head >= Q_SIZE) {
 		p->head = 0;
 	}
 
@@ -45,13 +46,14 @@ int DeQ(q_t *p) // return -1 if q is empty
 void EnQ(int element, q_t *p)
 {
 	if (FullQ(p)) {
+		cons_printf("Queue is full, can't enqueue!\n");
 		return;
 	}
 	p->q[p->tail] = element;
 
 	p->tail += 1;
 
-	if (p->tail >= NUM_PROC) {
+	if (p->tail >= Q_SIZE) {
 		p->tail = 0;
 	}
 

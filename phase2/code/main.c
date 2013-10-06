@@ -1,7 +1,7 @@
 // main.c, 159
 // simulated kernel with event/interrupt handling
-// Joubin Jabbari and Robert Wall
-// Last edited: 2013-09-28 / phase 1
+// Team Name: walls
+// Members: Joubin Jabbari and Robert Wall
 
 #include "spede.h"
 #include "types.h"
@@ -115,7 +115,7 @@ void Kernel(tf_t *tf_p) // kernel directly enters here when interrupt occurs
                SpawnISR(DeQ(&avail_q), SimpleProc);
             }
             break;
-         case 'k': KillISR(); break;
+         case 'k': KillISR(); break; // non-functional in phase 2
          case 's': ShowStatusISR(); break;
          case 'b': breakpoint(); break; // this stops when run in GDB mode
          case 'q': exit(0);
