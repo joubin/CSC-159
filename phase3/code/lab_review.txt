@@ -1,0 +1,3 @@
+The round-robin scheduling policy would be edited by changing the ready queue from a simple queue to a priority queue. The "priority" in this case would implement whatever advanced policy you want. For example, it might be set based on how much time has been used up so far.
+
+The easiest way to implement this would be to change q_mgmt.c to create priority queues instead of regular queues, and add a new parameter priority to EnQ that sets the priority, then edit main.c and isr.c to pass that parameter when creating or re-queuing a process.
