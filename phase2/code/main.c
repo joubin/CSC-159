@@ -1,7 +1,7 @@
 // main.c, 159
 // simulated kernel with event/interrupt handling
-// Joubin Jabbari and Robert Wall
-// Last edited: 2013-09-28 / phase 1
+// Team Name: walls
+// Members: Joubin Jabbari and Robert Wall
 
 #include "spede.h"
 #include "types.h"
@@ -34,17 +34,17 @@ void main()
    SpawnISR(0, IdleProc); // create IdleProc for OS to run if no user processes
 
    cur_pid = 0;
-   EI();
+
    Loader(pcbs[0].tf_p);
 }
 
 void InitControl()
 {
    idt_table = get_idt_base();
-   SetIDTEntry(32, TimerEntry);
-   SetIDTEntry(31, SleepEntry);
-   SetIDTEntry(30, GetPidEntry);
-   outportb(0x21, ~0x01);
+   SetIDTEntry(0x20, TimerEntry);
+   SetIDTEntry(0x31, SleepEntry);
+   SetIDTEntry(0x30, GetPidEntry);
+   outportb(0x21, ~0x11);
 
 }
 
@@ -115,7 +115,7 @@ void Kernel(tf_t *tf_p) // kernel directly enters here when interrupt occurs
                SpawnISR(DeQ(&avail_q), SimpleProc);
             }
             break;
-         case 'k': KillISR(); break;
+         case 'k': KillISR(); break; // non-functional in phase 2
          case 's': ShowStatusISR(); break;
          case 'b': breakpoint(); break; // this stops when run in GDB mode
          case 'q': exit(0);
