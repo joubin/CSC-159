@@ -51,7 +51,7 @@ void Init() // handles key events, move the handling code out of Kernel()
 				case 'b': breakpoint(); break; // this stops when run in GDB mode
 				case 'q': exit(0);
 			} // switch(key)
-		} // if(cons_kbhit())        
+		} // if(cons_kbhit()) 
 
 	}
 }

@@ -73,7 +73,7 @@ void InitData()
 		EnQ(i, &avail_q);
 	}
 
-	for(i=NUM_SEM-1; i <= 0; i--) // init pcbs[], skip 0 since it's Idle Proc
+	for(i=NUM_SEM-1; i >= 0; i--) // init pcbs[], skip 0 since it's Idle Proc
 	{
 		EnQ(i, &avail_sem_q);
 
@@ -126,7 +126,7 @@ void Kernel(tf_t *tf_p) // kernel directly enters here when interrupt occurs
 			}
 			break;
 		case SEMINIT_INTR:
-			tf_p->eax = SemInitISR(tf_p->eax);
+			tf_p->ebx = SemInitISR(tf_p->eax);
 			break;
 		case SEMWAIT_INTR:
 			SemWaitISR(tf_p->eax);
