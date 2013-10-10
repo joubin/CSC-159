@@ -20,17 +20,43 @@ void Sleep(int sleep_secs) // sleep for how many secs
             : "eax");                    // 1 overwritten register
 }
 
+int Spawn(func_ptr_t addr) {
+	int pid;
+	asm("movl %0, %%eax; int $0x32"
+		:
+		: "g" (addr)
+		: "eax");
+	
+	asm("movl %%eax, %0"
+		: "=g" (pid)
+		:
+		: "eax");
+	return pid;
+}
+int SemInit(int sem_count) {
+	int sid;
 
-int Spawn(func_ptr_t addr){ // TODO: CODE THIS
+	asm("movl %0, %%eax; int $0x33"
+		:
+		: "g" (sem_count)
+		: "eax");
 
-    
+	asm("movl %%eax, %0"
+		: "=g" (sid)
+		:
+		: "eax");
+	return sid;
 }
-int SemInit(int sem_count){// TODO: CODE THIS
-    
+void SemWait(int sid) {
+	asm("movl %0, %%eax; int $0x34"
+		:
+		: "g" (sid)
+		: "eax");
 }
-void SemWait(int sid){// TODO: CODE THIS
-    
-}
-void SemPost(int sid){// TODO: CODE THIS
-    
+void SemPost(int sid) {
+	asm("movl %0, %%eax; int $0x35"
+		:
+		: "g" (sid)
+		: "eax");
+
 }

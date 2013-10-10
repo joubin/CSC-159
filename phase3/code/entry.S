@@ -49,10 +49,8 @@ ENTRY(SleepEntry)
     pushl $SLEEP_INTR
     jmp EnterKernel
 
-
-
 ENTRY(SpawnEntry)
-  pushl $SPWN__INTR
+  pushl $SPAWN_INTR
   jmp EnterKernel
 
 ENTRY(SemInitEntry)

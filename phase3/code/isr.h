@@ -9,7 +9,7 @@ void TimerISR();
 void ShowStatusISR();
 void SleepISR(int);
 
-void SemInitISR(int);
+int SemInitISR(int);
 void SemWaitISR(int);
 void SemPostISR(int);
 #endif
