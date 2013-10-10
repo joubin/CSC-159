@@ -128,4 +128,19 @@ void SleepISR(int sleep_secs){
     cur_pid = -1;
 }
 
+void SemInitISR(int sem_count){
+
+    // init a blocking mechnaism
+
+}
+
+void SemWaitISR(int sid){
+    // Queue up and wait for sem
+}
+
+void SemPostISR(int sit){
+
+    // Give up sem to the next process in Q
+
+}
 

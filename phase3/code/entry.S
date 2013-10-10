@@ -48,3 +48,21 @@ ENTRY(GetPidEntry)
 ENTRY(SleepEntry)
     pushl $SLEEP_INTR
     jmp EnterKernel
+
+
+
+ENTRY(SpawnEntry)
+  pushl $SPWN__INTR
+  jmp EnterKernel
+
+ENTRY(SemInitEntry)
+  pushl $SEMINIT_INTR
+  jmp EnterKernel
+
+ENTRY(SemWaitEntry)
+  pushl $SEMWAIT_INTR
+  jmp EnterKernel
+
+ENTRY(SemPostEntry)
+  pushl $SEMPOST_INTR
+  jmp EnterKernel

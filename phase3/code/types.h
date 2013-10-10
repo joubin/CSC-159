@@ -9,6 +9,7 @@
 #define NUM_PROC 20          // max number of processes allowed in the system
 #define Q_SIZE 20            // queuing capacity
 #define USER_STACK_SIZE 4096 // # of bytes for runtime stack
+#define NUM_SEM 20 // max # of semaphors 
 
 typedef enum {AVAIL, READY, RUN, SLEEP, WAIT} state_t;
 
@@ -28,6 +29,11 @@ typedef struct // queue type: head & tail pointing array of PIDs
 } q_t;
 
 typedef void (* func_ptr_t)(); // void-returning function pointer type
+
+typedef struct{
+    int sem_count; // sem count
+    q_t wait_q; // process wait for q
+} sem_t;
 
 #endif
 

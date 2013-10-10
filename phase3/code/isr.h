@@ -8,4 +8,8 @@ void KillISR();
 void TimerISR();
 void ShowStatusISR();
 void SleepISR(int);
+
+void SemInitISR(int);
+void SemWaitISR(int);
+void SemPostISR(int);
 #endif

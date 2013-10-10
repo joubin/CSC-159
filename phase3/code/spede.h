@@ -35,4 +35,4 @@
  *  Two of these in a row give a 1.2 microsecond delay.
  *       Attributed to James van Artsdalen.
  */
-// #define  IO_DELAY()  ASM ("inb $0x80,%%al" : : : "eax")
+//#define  IO_DELAY()  ASM ("inb $0x80,%%al" : : : "eax")

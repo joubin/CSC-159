@@ -17,6 +17,10 @@ q_t ready_q, avail_q, sleep_q;               // processes ready to run and not u
 pcb_t pcbs[NUM_PROC];               // process table
 char user_stacks[NUM_PROC][USER_STACK_SIZE]; // run-time stacks for processes
 struct i386_gate *idt_table;
+int common_sid;
+int product_num;
+sem_t sems[NUM_SEM];
+q_t avail_sem_q;
 
 // Method signitures
 void InitControl();
@@ -27,11 +31,13 @@ void SetIDTEntry(int entry_num, func_ptr_t entry_addr){
 }
 void main()
 {
+
    InitData();  // initialize needed data for kernel
 
    InitControl();
 
    SpawnISR(0, IdleProc); // create IdleProc for OS to run if no user processes
+   SpawnISR(1, Init);
 
    cur_pid = 0;
 
@@ -42,9 +48,13 @@ void InitControl()
 {
    idt_table = get_idt_base();
    SetIDTEntry(0x20, TimerEntry);
-   SetIDTEntry(0x31, SleepEntry);
    SetIDTEntry(0x30, GetPidEntry);
-   outportb(0x21, ~0x11);
+   SetIDTEntry(0x31, SleepEntry);
+   SetIDTEntry(0x32, SpawnEntry);
+   SetIDTEntry(0x33, SemInitEntry);
+   SetIDTEntry(0x34, SemWaitEntry);
+   SetIDTEntry(0x35, SemPostEntry);
+   outportb(0x21, ~0x01);
 
 }
 
@@ -55,11 +65,18 @@ void InitData()
 // queue initializations, both queues are empty first
    InitQ(&avail_q);
    InitQ(&ready_q);
+   InitQ(&avail_sem_q);
 
-   for(i=1; i<NUM_PROC; i++) // init pcbs[], skip 0 since it's Idle Proc
+   for(i=2; i < NUM_PROC ; i++) // init pcbs[], skip 0 since it's Idle Proc
    {
       pcbs[i].state = AVAIL;
       EnQ(i, &avail_q);
+   }
+
+   for(i=NUM_SEM-1; i <= 0; i--) // init pcbs[], skip 0 since it's Idle Proc
+   {
+      EnQ(i, &avail_sem_q);
+
    }
 
    cur_pid = -1;  // no process is running initially
@@ -95,32 +112,44 @@ void Kernel(tf_t *tf_p) // kernel directly enters here when interrupt occurs
       case SLEEP_INTR:
             SleepISR(tf_p->eax);
             break;
-       case GETPID_INTR:
+      case GETPID_INTR:
             tf_p->eax = cur_pid;
+            break;
+      case SPAWN_INTR:
+            SpawnISR(func_ptr_t);
+            break;
+      case SEMINIT_INTR:
+            SemInitISR(sem_count);
+            break;
+      case SEMWAIT_INTR:
+            SemWaitISR(sid);
+            break;
+      case SEMPOST_INTR:
+            SemPostISR(sid);
             break;
    }
 
    // still handles other keyboard-generated simulated events
-   if(cons_kbhit()) // check if a key was pressed (returns non zero)
-   {
-      char key = cons_getchar(); // get the pressed key
+   // if(cons_kbhit()) // check if a key was pressed (returns non zero)
+   // {
+   //    char key = cons_getchar(); // get the pressed key
 
-      switch(key) // see if it's one of the following for service
-      {
-         case 'n':
-            if(EmptyQ(&avail_q))
-               cons_printf("No more available PIDs!\n");
-            else
-            {
-               SpawnISR(DeQ(&avail_q), SimpleProc);
-            }
-            break;
-         case 'k': KillISR(); break; // non-functional in phase 2
-         case 's': ShowStatusISR(); break;
-         case 'b': breakpoint(); break; // this stops when run in GDB mode
-         case 'q': exit(0);
-      } // switch(key)
-   } // if(cons_kbhit())
+   //    switch(key) // see if it's one of the following for service
+   //    {
+   //       case 'n':
+   //          if(EmptyQ(&avail_q))
+   //             cons_printf("No more available PIDs!\n");
+   //          else
+   //          {
+   //             SpawnISR(DeQ(&avail_q), SimpleProc);
+   //          }
+   //          break;
+   //       case 'k': KillISR(); break; // non-functional in phase 2
+   //       case 's': ShowStatusISR(); break;
+   //       case 'b': breakpoint(); break; // this stops when run in GDB mode
+   //       case 'q': exit(0);
+   //    } // switch(key)
+   // } // if(cons_kbhit())
 
    Scheduler();                // select a process to run
    Loader(pcbs[cur_pid].tf_p); // run the process selected
