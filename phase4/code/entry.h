@@ -20,8 +20,6 @@
 #define KERNAL_STACK_SIZE 8192  // kernel's stack size, in chars
 
 
-7
-
 // ISR Entries
 #ifndef ASSEMBLER
 

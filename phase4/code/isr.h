@@ -3,10 +3,11 @@
 #ifndef _ISR_H_
 #define _ISR_H_
 
+void MyBzero(void *, int);
 void SpawnISR(int, func_ptr_t);
 void KillISR();
-void TimerISR();
 void ShowStatusISR();
+void TimerISR();
 void SleepISR(int);
 
 int SemInitISR(int);

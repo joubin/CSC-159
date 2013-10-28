@@ -25,9 +25,6 @@ q_t avail_sem_q;
 mbox_t mboxes[NUM_PROC];			// Mailboxes
 
 
-// Method signitures
-void InitControl();
-
 void SetIDTEntry(int entry_num, func_ptr_t entry_addr){
 	struct i386_gate *gateptr = &idt_table[entry_num];
 	fill_gate(gateptr, (int)entry_addr, get_cs(), ACC_INTR_GATE,0);
@@ -146,28 +143,6 @@ void Kernel(tf_t *tf_p) // kernel directly enters here when interrupt occurs
 			MsgRcvISR();
 			break;
 	}
-
-	// still handles other keyboard-generated simulated events
-	// if(cons_kbhit()) // check if a key was pressed (returns non zero)
-	// {
-	//    char key = cons_getchar(); // get the pressed key
-
-	//    switch(key) // see if it's one of the following for service
-	//    {
-	//       case 'n':
-	//          if(EmptyQ(&avail_q))
-	//             cons_printf("No more available PIDs!\n");
-	//          else
-	//          {
-	//             SpawnISR(DeQ(&avail_q), SimpleProc);
-	//          }
-	//          break;
-	//       case 'k': KillISR(); break; // non-functional in phase 2
-	//       case 's': ShowStatusISR(); break;
-	//       case 'b': breakpoint(); break; // this stops when run in GDB mode
-	//       case 'q': exit(0);
-	//    } // switch(key)
-	// } // if(cons_kbhit())
 
 	Scheduler();                // select a process to run
 	Loader(pcbs[cur_pid].tf_p); // run the process selected
