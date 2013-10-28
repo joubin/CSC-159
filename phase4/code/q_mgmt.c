@@ -6,7 +6,7 @@
 
 int EmptyQ(q_t *p)
 {
-   return (p->count == 0);
+	return (p->count == 0);
 }
 
 int FullQ(q_t *p)
@@ -29,9 +29,9 @@ int DeQ(q_t *p) // return -1 if q is empty
 		cons_printf("Queue is empty, can't dequeue!\n");
 		return -1;
 	}
-	
+
 	pid = p->q[p->head];
-	
+
 	p->head += 1;
 
 	if (p->head >= Q_SIZE) {
@@ -72,8 +72,8 @@ int MsgQEmpty(msg_q_t *p)
 
 void EnQMsg(msg_t *p, msg_q_t *q)
 {
-  int t_p = q->tail;		
-  	memcpy(&(q->msgs[t_p]),p,sizeof(msg_t));
+	int t_p = q->tail;
+	memcpy(&(q->msgs[t_p]),p,sizeof(msg_t));
 	if(q->tail == (Q_SIZE-1))
 		q->tail = 0;
 	else
@@ -83,12 +83,12 @@ void EnQMsg(msg_t *p, msg_q_t *q)
 
 msg_t *DeQMsg(msg_q_t *p)
 {
-  msg_t *msg;
-  int h_p = p -> head;
-  
-	
+	msg_t *msg;
+	int h_p = p -> head;
+
+
 	if(p->count > 0)
-	{	
+	{
 		msg = (msg_t*)&(p->msgs[h_p]);
 		if(p->head == (Q_SIZE-1))
 			p->head = 0;

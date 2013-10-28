@@ -47,7 +47,7 @@ void KillISR()
 	pcbs[cur_pid].state = AVAIL;
 	EnQ(cur_pid, &avail_q);
 	cur_pid = -1;          // no proc running any more
-}        
+}
 
 void ShowStatusISR()
 {
@@ -113,7 +113,7 @@ void SleepISR(int sleep_secs){
 	q_t tmp_q;
 	InitQ(&tmp_q);
 	pcbs[cur_pid].wake_tick = (sys_tick + sleep_secs * 100);
-	while( !(EmptyQ(&sleep_q)) && 
+	while( !(EmptyQ(&sleep_q)) &&
 			(pcbs[sleep_q.q[sleep_q.head]].wake_tick <= pcbs[cur_pid].wake_tick)         ){
 		int tmpPID= DeQ(&sleep_q);
 		EnQ(tmpPID, &tmp_q);
@@ -168,15 +168,15 @@ void SemPostISR(int sid){
 void MsgRcvISR()
 {
 	int mid = pcbs[cur_pid].tf_p ->eax;
-   	msg_t *source, *destination = (msg_t *)pcbs[cur_pid].tf_p->ebx;
-	
+	msg_t *source, *destination = (msg_t *)pcbs[cur_pid].tf_p->ebx;
+
 	if(!MsgQEmpty(&mboxes[mid].msg_q))
 	{
 		source = DeQMsg(&mboxes[mid].msg_q);
 		memcpy(destination,source,sizeof(msg_t));
 	}
 	else
-	{		
+	{
 		EnQ(cur_pid, &mboxes[mid].wait_q);
 		pcbs[cur_pid].state = WAIT;
 		cur_pid=-1;
@@ -185,27 +185,27 @@ void MsgRcvISR()
 
 void MsgSndISR()
 {
-   	int mid,pid,head;
-   	msg_t *source, *destination;
-	
+	int mid,pid,head;
+	msg_t *source, *destination;
+
 	mid = pcbs[cur_pid].tf_p ->eax;
 	source = (msg_t*)pcbs[cur_pid].tf_p -> ebx;
-	
+
 	if(!EmptyQ(&mboxes[mid].wait_q))
 	{
 		pid = DeQ(&mboxes[mid].wait_q);
 		EnQ(pid,&ready_q);
 		pcbs[pid].state = READY;
-		
+
 		destination = (msg_t *)pcbs[pid].tf_p -> ebx;
 		memcpy(destination,source,sizeof(msg_t));
 	}
 	else
-	{		
+	{
 		EnQMsg(source, &mboxes[mid].msg_q);
-		head = mboxes[mid].msg_q.head;		
+		head = mboxes[mid].msg_q.head;
 		destination = &mboxes[mid].msg_q.msgs[head];
-		
+
 	}
 	destination->sender = cur_pid;
 	destination->send_tick = sys_tick;
