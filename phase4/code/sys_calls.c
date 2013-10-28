@@ -53,3 +53,15 @@ void SemPost(int sid) {
 		: "eax");
 
 }
+void MsgSnd(int mid, msg_t * msg) {
+	asm("movl %0, %%eax; movl %1, %%ebx; int $0x36"
+		:
+		: "g" (mid), "g" (msg)
+		: "eax", "ebx");
+}
+void MsgRcv(int mid, msg_t * msg) {
+	asm("movl %0, %%eax; movl %1, %%ebx; int $0x36"
+		:
+		: "g" (mid), "g" (msg)
+		: "eax", "ebx");
+}

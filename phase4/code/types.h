@@ -11,9 +11,7 @@
 #define USER_STACK_SIZE 4096 // # of bytes for runtime stack
 #define NUM_SEM 20 // max # of semaphors 
 
-/*
-To hangle messages
-*/
+// To handle messages
 #define NUM_MSG 20     // # of msgs in msg_q of a mailbox
 #define NUM_NUM 6      // # of numbers in int array of a message
 #define NUM_BYTE 101   // # of chars in str of a message

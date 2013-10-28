@@ -170,7 +170,7 @@ void MsgRcvISR()
 	int mid = pcbs[cur_pid].tf_p ->eax;
    	msg_t *source, *destination = (msg_t *)pcbs[cur_pid].tf_p->ebx;
 	
-	if(!MsgEmptyQ(&mboxes[mid].msg_q))
+	if(!MsgQEmpty(&mboxes[mid].msg_q))
 	{
 		source = DeQMsg(&mboxes[mid].msg_q);
 		memcpy(destination,source,sizeof(msg_t));

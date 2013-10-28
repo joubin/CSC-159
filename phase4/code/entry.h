@@ -27,15 +27,18 @@ __BEGIN_DECLS
 
 #include "types.h" // for tf_t below
 
-extern void TimerEntry();     // code defined in entry.S
-extern void Loader(tf_t *);   // code defined in entry.S
-extern void GetPidEntry();
-extern void SleepEntry();
+void TimerEntry();     // code defined in entry.S
+void Loader(tf_t *);   // code defined in entry.S
+void GetPidEntry();
+void SleepEntry();
 
-extern void SpawnEntry();
-extern void SemInitEntry();
-extern void SemWaitEntry();
-extern void SemPostEntry();
+void SpawnEntry();
+void SemInitEntry();
+void SemWaitEntry();
+void SemPostEntry();
+
+void MsgSndEntry();
+void MsgRcvEntry();
 
 __END_DECLS
 
