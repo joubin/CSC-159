@@ -3,6 +3,7 @@
 #include "spede.h"
 #include "types.h"
 #include "externs.h"
+#include "q_mgmt.h"
 
 int EmptyQ(q_t *p)
 {
@@ -73,7 +74,7 @@ int MsgQEmpty(msg_q_t *p)
 void EnQMsg(msg_t *p, msg_q_t *q)
 {
 	int t_p = q->tail;
-	memcpy(&(q->msgs[t_p]),p,sizeof(msg_t));
+	MyMemCpy((char*)&(q->msgs[t_p]),(char*)p,sizeof(msg_t));
 	if(q->tail == (Q_SIZE-1))
 		q->tail = 0;
 	else
@@ -99,4 +100,20 @@ msg_t *DeQMsg(msg_q_t *p)
 	else
 		msg = 0;
 	return msg;
+}
+
+void MyBZero(char *p, int size)
+{
+   while( size-- ) *p++ = 0; // they'll be all nulls
+}
+
+void MyMemCpy(char *dest, char *src, int size)
+{
+   while(size--) *dest++ = *src++;
+}
+
+
+void MyStrCpy(char *dest, char *src)
+{
+   while(*src != '\0') *dest++ = *src++;
 }

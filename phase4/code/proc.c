@@ -5,6 +5,7 @@
 #include "externs.h" // for cur_pid needed here below
 #include "proc.h"
 #include "sys_calls.h"
+#include "q_mgmt.h"
 
 void IdleProc()
 {
@@ -24,7 +25,7 @@ void Init() // handles key events, move the handling code out of Kernel()
 	product_num = 0; // set product_num to zero
 	common_sid = SemInit(1); //get "common_sid" thru SemInit() call
 	for (i = 0; i < BUFF_SIZE; i++) {
-		MsgSnd(0, 0);
+		MsgSnd(0, &initmsg);
 	}
 	while (1){
 		cons_printf("%d ", GetPid());
@@ -71,7 +72,7 @@ void Producer()
 	while(1)
 	{
 		MsgRcv(producer_id, &msg); // get a msg (product container)
-		memcpy(msg.bytes,fruits[(pid % 7)],sizeof(msg.bytes));
+		MyMemCpy(msg.bytes,fruits[(pid % 7)],sizeof(msg.bytes));
 		cons_printf("\nProducer %d is producing: %s\n", pid, msg.bytes);
 
 		for(i=0; i<1666000; i++) IO_DELAY(); // make CPU busy for .5 sec
@@ -101,7 +102,7 @@ void Consumer()
 		cons_printf("Consumer %d is consumng: %s\n", pid, msg.bytes);
 		for(i=0; i<1666000; i++) IO_DELAY(); // make CPU busy for .5 sec
 
-		memcpy(msg.bytes,"EMPTY\0",sizeof(msg.bytes));
+		MyMemCpy(msg.bytes,"EMPTY\0",sizeof(msg.bytes));
 		MsgSnd(producer_id, &msg);
 	}
 } // Consumer()

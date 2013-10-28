@@ -173,7 +173,7 @@ void MsgRcvISR()
 	if(!MsgQEmpty(&mboxes[mid].msg_q))
 	{
 		source = DeQMsg(&mboxes[mid].msg_q);
-		memcpy(destination,source,sizeof(msg_t));
+		MyMemCpy((char*)destination,(char*)source,sizeof(msg_t));
 	}
 	else
 	{
@@ -198,7 +198,7 @@ void MsgSndISR()
 		pcbs[pid].state = READY;
 
 		destination = (msg_t *)pcbs[pid].tf_p -> ebx;
-		memcpy(destination,source,sizeof(msg_t));
+		MyMemCpy((char*)destination,(char*)source,sizeof(msg_t));
 	}
 	else
 	{
