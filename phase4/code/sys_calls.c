@@ -60,7 +60,7 @@ void MsgSnd(int mid, msg_t * msg) {
 			: "eax", "ebx");
 }
 void MsgRcv(int mid, msg_t * msg) {
-	asm("movl %0, %%eax; movl %1, %%ebx; int $0x36"
+	asm("movl %0, %%eax; movl %1, %%ebx; int $0x37"
 			:
 			: "g" (mid), "g" (msg)
 			: "eax", "ebx");

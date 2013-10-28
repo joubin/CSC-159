@@ -63,7 +63,7 @@ void EnQ(int element, q_t *p)
 
 int MsgQFull(msg_q_t *p)
 {
-	return(p->count == 20);
+	return(p->count == NUM_MSG);
 }
 
 int MsgQEmpty(msg_q_t *p)
@@ -75,7 +75,7 @@ void EnQMsg(msg_t *p, msg_q_t *q)
 {
 	int t_p = q->tail;
 	MyMemCpy((char*)&(q->msgs[t_p]),(char*)p,sizeof(msg_t));
-	if(q->tail == (Q_SIZE-1))
+	if(q->tail >= Q_SIZE)
 		q->tail = 0;
 	else
 		q->tail++;
@@ -91,7 +91,7 @@ msg_t *DeQMsg(msg_q_t *p)
 	if(p->count > 0)
 	{
 		msg = (msg_t*)&(p->msgs[h_p]);
-		if(p->head == (Q_SIZE-1))
+		if(p->head >= Q_SIZE)
 			p->head = 0;
 		else
 			p->head++;
@@ -115,5 +115,6 @@ void MyMemCpy(char *dest, char *src, int size)
 
 void MyStrCpy(char *dest, char *src)
 {
-   while(*src != '\0') *dest++ = *src++;
+	while(*src != '\0') *dest++ = *src++;
+	*dest = '\0';
 }

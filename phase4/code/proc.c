@@ -72,7 +72,7 @@ void Producer()
 	while(1)
 	{
 		MsgRcv(producer_id, &msg); // get a msg (product container)
-		MyMemCpy(msg.bytes,fruits[(pid % 7)],sizeof(msg.bytes));
+		MyStrCpy(msg.bytes,fruits[(pid % 7)]);
 		cons_printf("\nProducer %d is producing: %s\n", pid, msg.bytes);
 
 		for(i=0; i<1666000; i++) IO_DELAY(); // make CPU busy for .5 sec
@@ -99,10 +99,10 @@ void Consumer()
 
 		MsgRcv(consumer_id, &msg); // get a message, a product
 
-		cons_printf("Consumer %d is consumng: %s\n", pid, msg.bytes);
+		cons_printf("Consumer %d is consuming: %s\n", pid, msg.bytes);
 		for(i=0; i<1666000; i++) IO_DELAY(); // make CPU busy for .5 sec
 
-		MyMemCpy(msg.bytes,"EMPTY\0",sizeof(msg.bytes));
+		MyStrCpy(msg.bytes,"EMPTY\0");
 		MsgSnd(producer_id, &msg);
 	}
 } // Consumer()

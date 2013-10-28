@@ -205,7 +205,6 @@ void MsgSndISR()
 		EnQMsg(source, &mboxes[mid].msg_q);
 		head = mboxes[mid].msg_q.head;
 		destination = &mboxes[mid].msg_q.msgs[head];
-
 	}
 	destination->sender = cur_pid;
 	destination->send_tick = sys_tick;
