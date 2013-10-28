@@ -15,5 +15,7 @@ extern int common_sid;
 extern int product_num;
 extern sem_t sems[NUM_SEM];
 extern q_t avail_sem_q;
+extern mbox_t mboxes[NUM_PROC];            // Mailboxes
+
 
 #endif

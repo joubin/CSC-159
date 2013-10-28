@@ -58,38 +58,47 @@ void Init() // handles key events, move the handling code out of Kernel()
 
 void Producer()
 {
-	int sleep_secs = (GetPid()%5)+1; // determine its sleep seconds (1-5) according to its PID 
-	int i;
-	while(1){
-		SemWait(common_sid);
-		for(i=0;i<1666000;i++) IO_DELAY(); // delay for about 1 sec
-		product_num += 1;
-		cons_printf("Product count is now %d\n", product_num);
-		SemPost(common_sid);
-		Sleep(sleep_secs);
-	}
-}
+   int i, pid = GetPid();
+   msg_t msg;	// this is local, repeatedly used in loop
+   char *fruits[] = 
+		{"apple\0","banana\0","cherry\0","durian\0","eggplant\0","fig\0","guava\0"};	
+   
+   sleep_secs = (pid%4)+1;  // 1 to 4 secsd
 
+   while(1)
+   {
+      MsgRcv(producer_mid, &msg); // get a msg (product container)
+      memcpy(msg.bytes,fruits[(pid % 7)],sizeof(msg.bytes));
+      cons_printf("\nProducer %d is producing: %s\n", pid, msg.bytes);
+      
+      for(i=0; i<1666000; i++) IO_DELAY(); // make CPU busy for .5 sec
+      		   
+      MsgSnd(consumer_mid, &msg); // out of critical section
+
+      Sleep(sleep_secs);
+   }
+}
 
 void Consumer()
 {
-	int sleep_secs = (GetPid()%5)+1; // determine its sleep seconds (1-5) according to its PID 
-	int i;
-	while(1){
-		Sleep(sleep_secs);
-		SemWait(common_sid);
-		if (product_num == 0)
-		{
-			cons_printf( "Consumer %d wants to consume but no product...\n", GetPid());
-		}else{
-			cons_printf("Consumer %d is consuming...\n", GetPid());
-			product_num -= 1;
-			for(i=0;i<1666000;i++) IO_DELAY(); // delay for about 1 sec
-			cons_printf("Product count is now %d\n", product_num);
+   int i, pid = GetPid();
+   msg_t msg;     // this is local, repeatedly used in loop
+   
+   sleep_secs = (pid%4)+1;  // 1 to 4 secsd
 
-		}
-		SemPost(common_sid);
-	}
-}
+   while(1)
+   {
+      	Sleep(sleep_secs);
+
+      	MsgRcv(consumer_mid, &msg); // get a message, a product
+
+      	cons_printf("Consumer %d is consumng: %s\n", pid, msg.bytes);
+	for(i=0; i<1666000; i++) IO_DELAY(); // make CPU busy for .5 sec	
+        
+	memcpy(msg.bytes,"EMPTY\0",sizeof(msg.bytes));
+	MsgSnd(producer_mid, &msg);
+   }
+} loop
+} // Consumer()
 
 

@@ -18,6 +18,7 @@ void MyBzero(void *s, int n) {
 void SpawnISR(int pid, func_ptr_t addr)
 {
 	MyBzero((void *)user_stacks[pid], USER_STACK_SIZE);
+	MyBzero(&mboxes[pid], sizeof(mbox_t));
 	// 1st. point to just above of user stack, then drop by 64 bytes (tf_t)
 	pcbs[pid].tf_p = (tf_t *)&user_stacks[pid][USER_STACK_SIZE];
 	pcbs[pid].tf_p--;    // pointer arithmetic, now points to trapframe
@@ -161,5 +162,52 @@ void SemPostISR(int sid){
 	else {
 		sems[sid].sem_count += 1;
 	}
+}
+
+
+void MsgRcvISR()
+{
+	int mid = pcbs[cur_pid].tf_p ->eax;
+   	msg_t *source, *destination = (msg_t *)pcbs[cur_pid].tf_p->ebx;
+	
+	if(!MsgEmptyQ(&mboxes[mid].msg_q))
+	{
+		source = DeQMsg(&mboxes[mid].msg_q);
+		memcpy(destination,source,sizeof(msg_t));
+	}
+	else
+	{		
+		EnQ(cur_pid, &mboxes[mid].wait_q);
+		pcbs[cur_pid].state = WAIT;
+		cur_pid=-1;
+	}
+}
+
+void MsgSndISR()
+{
+   	int mid,pid,head;
+   	msg_t *source, *destination;
+	
+	mid = pcbs[cur_pid].tf_p ->eax;
+	source = (msg_t*)pcbs[cur_pid].tf_p -> ebx;
+	
+	if(!EmptyQ(&mboxes[mid].wait_q))
+	{
+		pid = DeQ(&mboxes[mid].wait_q);
+		EnQ(pid,&ready_q);
+		pcbs[pid].state = READY;
+		
+		destination = (msg_t *)pcbs[pid].tf_p -> ebx;
+		memcpy(destination,source,sizeof(msg_t));
+	}
+	else
+	{		
+		EnQMsg(source, &mboxes[mid].msg_q);
+		head = mboxes[mid].msg_q.head;		
+		destination = &mboxes[mid].msg_q.msgs[head];
+		
+	}
+	destination->sender = cur_pid;
+	destination->send_tick = sys_tick;
 }
 

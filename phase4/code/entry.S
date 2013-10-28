@@ -64,3 +64,11 @@ ENTRY(SemWaitEntry)
 ENTRY(SemPostEntry)
   pushl $SEMPOST_INTR
   jmp EnterKernel
+
+ENTRY(MsgSndEntry)
+   pushl $MSGSND_INTR
+   jmp EnterKernel
+
+ENTRY(MsgRcvEntry)
+   pushl $MSGRCV_INTR
+   jmp EnterKernel

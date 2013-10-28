@@ -22,6 +22,9 @@ int product_num;
 sem_t sems[NUM_SEM];
 q_t avail_sem_q;
 
+mbox_t mboxes[NUM_PROC];			// Mailboxes
+
+
 // Method signitures
 void InitControl();
 
@@ -47,13 +50,15 @@ void main()
 void InitControl()
 {
 	idt_table = get_idt_base();
-	SetIDTEntry(0x20, TimerEntry);
-	SetIDTEntry(0x30, GetPidEntry);
-	SetIDTEntry(0x31, SleepEntry);
-	SetIDTEntry(0x32, SpawnEntry);
-	SetIDTEntry(0x33, SemInitEntry);
-	SetIDTEntry(0x34, SemWaitEntry);
-	SetIDTEntry(0x35, SemPostEntry);
+	SetIDTEntry(TIMER_INTR, TimerEntry);
+	SetIDTEntry(GETPID_INTR, GetPidEntry);
+	SetIDTEntry(SLEEP_INTR, SleepEntry);
+	SetIDTEntry(SPAWN_INTR, SpawnEntry);
+	SetIDTEntry(SEMINIT_INTR, SemInitEntry);
+	SetIDTEntry(SEMWAIT_INTR, SemWaitEntry);
+	SetIDTEntry(SEMPOST_INTR, SemPostEntry);
+	SetIDTEntry(MSGSND_INTR, MsgSndEntry);
+	SetIDTEntry(MSGRCV_INTR, MsgRcvEntry);
 	outportb(0x21, ~0x01);
 
 }
@@ -133,6 +138,12 @@ void Kernel(tf_t *tf_p) // kernel directly enters here when interrupt occurs
 			break;
 		case SEMPOST_INTR:
 			SemPostISR(tf_p->eax);
+			break;
+		case MSGSND_INTR:
+			MsgSndISR();
+			break;
+		case MSGRCV_INTR:
+			MsgRcvISR();
 			break;
 	}
 
