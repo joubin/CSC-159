@@ -21,6 +21,7 @@ int common_sid;
 int product_num;
 sem_t sems[NUM_SEM];
 q_t avail_sem_q;
+int print_sid;	// printing flow/control semaphore
 
 mbox_t mboxes[NUM_PROC];			// Mailboxes
 
@@ -48,6 +49,7 @@ void InitControl()
 {
 	idt_table = get_idt_base();
 	SetIDTEntry(TIMER_INTR, TimerEntry);
+	SetIDTEntry(IRQ7_INTR, IRQ7Entry);
 	SetIDTEntry(GETPID_INTR, GetPidEntry);
 	SetIDTEntry(SLEEP_INTR, SleepEntry);
 	SetIDTEntry(SPAWN_INTR, SpawnEntry);
@@ -56,7 +58,7 @@ void InitControl()
 	SetIDTEntry(SEMPOST_INTR, SemPostEntry);
 	SetIDTEntry(MSGSND_INTR, MsgSndEntry);
 	SetIDTEntry(MSGRCV_INTR, MsgRcvEntry);
-	outportb(0x21, ~0x01);
+	outportb(0x21, 0x7e);
 
 }
 
@@ -110,6 +112,9 @@ void Kernel(tf_t *tf_p) // kernel directly enters here when interrupt occurs
 	{
 		case TIMER_INTR:
 			TimerISR(); // this must include dismissal of timer interrupt
+			break;
+		case IRQ7_INTR:
+			IRQ7ISR();
 			break;
 		case SLEEP_INTR:
 			SleepISR(tf_p->eax);

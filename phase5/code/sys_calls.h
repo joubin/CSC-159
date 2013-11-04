@@ -10,5 +10,5 @@ int SemInit(int);
 void SemWait(int);
 void SemPost(int);
 void MsgSnd(int, msg_t *);
-void MsgRcv(int, msg_t *);
+void MsgRcv(msg_t *);
 #endif

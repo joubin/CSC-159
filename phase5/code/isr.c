@@ -210,3 +210,7 @@ void MsgSndISR()
 	destination->send_tick = sys_tick;
 }
 
+void IRQ7ISR() {
+   SemPostISR(print_sid); // perform SemPostISR directly from here
+   outportb(0x20, 0x67);  // 0x20 is PIC control, 0x67 dismisses IRQ 7
+}

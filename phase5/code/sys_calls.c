@@ -59,7 +59,8 @@ void MsgSnd(int mid, msg_t * msg) {
 			: "g" (mid), "g" (msg)
 			: "eax", "ebx");
 }
-void MsgRcv(int mid, msg_t * msg) {
+void MsgRcv(msg_t * msg) {
+	int mid = GetPid();
 	asm("movl %0, %%eax; movl %1, %%ebx; int $0x37"
 			:
 			: "g" (mid), "g" (msg)

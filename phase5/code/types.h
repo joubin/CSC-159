@@ -5,7 +5,7 @@
 
 #include "trap.h"            // defines tf_t, trap frame type
 
-#define TIME_SLICE 200       // max runtime per run per proc, 2 secs
+#define TIME_SLICE 3       // max runtime per run per proc, 2 secs
 #define NUM_PROC 20          // max number of processes allowed in the system
 #define Q_SIZE 20            // queuing capacity
 #define USER_STACK_SIZE 4096 // # of bytes for runtime stack

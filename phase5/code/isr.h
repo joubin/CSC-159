@@ -17,4 +17,6 @@ void SemPostISR(int);
 void MsgSndISR();
 void MsgRcvISR();
 
+void IRQ7ISR();
+
 #endif

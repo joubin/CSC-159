@@ -6,6 +6,8 @@
 #include <spede/machine/pic.h>
 
 #define TIMER_INTR 0x20
+#define IRQ7_INTR 0x27
+
 #define GETPID_INTR 0x30
 #define SLEEP_INTR 0x31
 
@@ -39,6 +41,8 @@ void SemPostEntry();
 
 void MsgSndEntry();
 void MsgRcvEntry();
+
+void IRQ7Entry();
 
 __END_DECLS
 
