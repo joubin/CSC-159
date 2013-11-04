@@ -2,7 +2,6 @@
 //
 // the code needed for printing via parallel port
 
-//????????????? YOU MAY NEED TO INCLUDE SOME MORE ??????????????
 #include <spede/machine/parallel.h> // flag constants used below
 #include "externs.h"   // has printing semaphore ID needed below
 #include "sys_calls.h" // prototypes of sys calls
@@ -115,24 +114,7 @@ int PrintChar(char ch) { // in irq7.c
 
 	outportb(io_base + LPT_CONTROL, the_code); // return original control
 	// above outportb() causes an IRQ7 signal which is OK to still
-	// busy-poll for ACK below, unless IRQ7 has been enabled in printer
-	// port to trip CPU to look for ISR, then ACK in status will disappear
 
-	// The following is busy-poll printer port for ACK of the char just
-	// sent. Experiment this then change to IRQ7 interrupt-driven method:
-	// replace code below (save return 0) with a single statement that
-	// starts with letter S.
-	//????????????????????? CODE BELOW ?????????????????????
-	// loop that many times (3 sec):
-	//for (i = 0; i < TIME_OUT; i++) {
-	//	the_code = PS_ACK & inportb(io_base + LPT_STATUS);
-	//	if(the_code == 0) return 0; // printer ACK'ed
-	//	IO_DELAY(); // otherwise, wait 0.65 us, and loop
-	//}
-	// if 3 sec timed out:
-	//cons_printf(">>> PrintChar timed out!\n");
-	//return -1; // timed out, return -1
-	//????????????????????? CODE ABOVE ?????????????????????
 	SemWait(print_sid);
 
 	return 0; // didn't time out, return 0
