@@ -17,8 +17,6 @@ q_t ready_q, avail_q, sleep_q;               // processes ready to run and not u
 pcb_t pcbs[NUM_PROC];               // process table
 char user_stacks[NUM_PROC][USER_STACK_SIZE]; // run-time stacks for processes
 struct i386_gate *idt_table;
-int common_sid;
-int product_num;
 sem_t sems[NUM_SEM];
 q_t avail_sem_q;
 int print_sid;	// printing flow/control semaphore
@@ -58,7 +56,12 @@ void InitControl()
 	SetIDTEntry(SEMPOST_INTR, SemPostEntry);
 	SetIDTEntry(MSGSND_INTR, MsgSndEntry);
 	SetIDTEntry(MSGRCV_INTR, MsgRcvEntry);
-	outportb(0x21, 0x7e);
+	SetIDTEntry(IRQ3_INTR, IRQ3Entry);
+	SetIDTEntry(IRQ4_INTR, IRQ4Entry);
+	// 0x66 = 0110 0110 in binary
+	// PIC mask will mask out any IRQs set to 1, starting from IRQ0,
+	// so 0x66 masks IRQ 1, 2, 5, and 6
+	outportb(0x21, 0x66);
 
 }
 
@@ -147,6 +150,10 @@ void Kernel(tf_t *tf_p) // kernel directly enters here when interrupt occurs
 		case MSGRCV_INTR:
 			MsgRcvISR();
 			break;
+		case IRQ3_INTR:
+			IRQ34ISR();
+		case IRQ4_INTR:
+			IRQ34ISR();
 	}
 
 	Scheduler();                // select a process to run

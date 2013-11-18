@@ -5,6 +5,5 @@
 
 void IdleProc();
 void Init();
-void Producer();
-void Consumer();
+void Shell();
 #endif
