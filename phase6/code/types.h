@@ -18,6 +18,8 @@
 
 #define BUFF_SIZE 3    // size of bounded buffer, # of msgs
 
+#define CHAR_Q_SIZE 20
+
 typedef enum {AVAIL, READY, RUN, SLEEP, WAIT} state_t;
 
 typedef struct            // PCB describes proc image
@@ -61,6 +63,12 @@ typedef struct
 	q_t wait_q;
 	msg_q_t msg_q;
 } mbox_t;
+
+typedef struct
+{
+	int count, head, tail;
+	char q[CHAR_Q_SIZE];
+} char_q_t;
 
 #endif
 

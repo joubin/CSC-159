@@ -3,6 +3,8 @@
 #ifndef _ISR_H_
 #define _ISR_H_
 
+#include "irq34.h"
+
 void MyBzero(void *, int);
 void SpawnISR(int, func_ptr_t);
 void KillISR();

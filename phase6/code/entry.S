@@ -22,20 +22,6 @@ ENTRY(Loader)
 	add $4, %esp         // skip 4 bytes that stored the intr_id
 	iret
 
-// Common IRQ entry, save context and call Kernel()
-EnterKernel:
-	pusha
-	pushl %ds
-	pushl %es
-	pushl %fs
-	pushl %gs
-	movl %esp, %ecx
-	cld
-	SET_KERNAL_SEGS      // set the DS and ES to kernel's data segments
-	leal kernal_stack + KERNAL_STACK_SIZE, %esp
-	pushl %ecx
-	call CNAME(Kernel)
-
 // push intr type number then jump to common handler
 ENTRY(TimerEntry)
 	pushl $TIMER_INTR
@@ -43,6 +29,14 @@ ENTRY(TimerEntry)
 
 ENTRY (IRQ7Entry)
 	pushl $IRQ7_INTR
+	jmp EnterKernel
+
+ENTRY (IRQ3Entry)
+	pushl $IRQ3_INTR
+	jmp EnterKernel
+
+ENTRY (IRQ4Entry)
+	pushl $IRQ4_INTR
 	jmp EnterKernel
 
 ENTRY(GetPidEntry)
@@ -76,3 +70,17 @@ ENTRY(MsgSndEntry)
 ENTRY(MsgRcvEntry)
 	pushl $MSGRCV_INTR
 	jmp EnterKernel
+
+// Common IRQ entry, save context and call Kernel()
+EnterKernel:
+	pusha
+	pushl %ds
+	pushl %es
+	pushl %fs
+	pushl %gs
+	movl %esp, %ecx
+	cld
+	SET_KERNAL_SEGS      // set the DS and ES to kernel's data segments
+	leal kernal_stack + KERNAL_STACK_SIZE, %esp
+	pushl %ecx
+	call CNAME(Kernel)
