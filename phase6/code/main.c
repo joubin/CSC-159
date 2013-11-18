@@ -21,16 +21,11 @@ int common_sid;
 int product_num;
 sem_t sems[NUM_SEM];
 q_t avail_sem_q;
+int print_sid;	// printing flow/control semaphore
 
 mbox_t mboxes[NUM_PROC];			// Mailboxes
 
 
-<<<<<<< HEAD
-// Method signitures
-void InitControl();
-
-=======
->>>>>>> b8a9e70220cc217dedb00b209013c8d21b381054
 void SetIDTEntry(int entry_num, func_ptr_t entry_addr){
 	struct i386_gate *gateptr = &idt_table[entry_num];
 	fill_gate(gateptr, (int)entry_addr, get_cs(), ACC_INTR_GATE,0);
@@ -54,6 +49,7 @@ void InitControl()
 {
 	idt_table = get_idt_base();
 	SetIDTEntry(TIMER_INTR, TimerEntry);
+	SetIDTEntry(IRQ7_INTR, IRQ7Entry);
 	SetIDTEntry(GETPID_INTR, GetPidEntry);
 	SetIDTEntry(SLEEP_INTR, SleepEntry);
 	SetIDTEntry(SPAWN_INTR, SpawnEntry);
@@ -62,7 +58,7 @@ void InitControl()
 	SetIDTEntry(SEMPOST_INTR, SemPostEntry);
 	SetIDTEntry(MSGSND_INTR, MsgSndEntry);
 	SetIDTEntry(MSGRCV_INTR, MsgRcvEntry);
-	outportb(0x21, ~0x01);
+	outportb(0x21, 0x7e);
 
 }
 
@@ -117,6 +113,9 @@ void Kernel(tf_t *tf_p) // kernel directly enters here when interrupt occurs
 		case TIMER_INTR:
 			TimerISR(); // this must include dismissal of timer interrupt
 			break;
+		case IRQ7_INTR:
+			IRQ7ISR();
+			break;
 		case SLEEP_INTR:
 			SleepISR(tf_p->eax);
 			break;
@@ -150,31 +149,6 @@ void Kernel(tf_t *tf_p) // kernel directly enters here when interrupt occurs
 			break;
 	}
 
-<<<<<<< HEAD
-	// still handles other keyboard-generated simulated events
-	// if(cons_kbhit()) // check if a key was pressed (returns non zero)
-	// {
-	//    char key = cons_getchar(); // get the pressed key
-
-	//    switch(key) // see if it's one of the following for service
-	//    {
-	//       case 'n':
-	//          if(EmptyQ(&avail_q))
-	//             cons_printf("No more available PIDs!\n");
-	//          else
-	//          {
-	//             SpawnISR(DeQ(&avail_q), SimpleProc);
-	//          }
-	//          break;
-	//       case 'k': KillISR(); break; // non-functional in phase 2
-	//       case 's': ShowStatusISR(); break;
-	//       case 'b': breakpoint(); break; // this stops when run in GDB mode
-	//       case 'q': exit(0);
-	//    } // switch(key)
-	// } // if(cons_kbhit())
-
-=======
->>>>>>> b8a9e70220cc217dedb00b209013c8d21b381054
 	Scheduler();                // select a process to run
 	Loader(pcbs[cur_pid].tf_p); // run the process selected
 }

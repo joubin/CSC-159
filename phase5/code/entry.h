@@ -6,6 +6,8 @@
 #include <spede/machine/pic.h>
 
 #define TIMER_INTR 0x20
+#define IRQ7_INTR 0x27
+
 #define GETPID_INTR 0x30
 #define SLEEP_INTR 0x31
 
@@ -20,11 +22,6 @@
 #define KERNAL_STACK_SIZE 8192  // kernel's stack size, in chars
 
 
-<<<<<<< HEAD
-7
-
-=======
->>>>>>> b8a9e70220cc217dedb00b209013c8d21b381054
 // ISR Entries
 #ifndef ASSEMBLER
 
@@ -32,17 +29,6 @@ __BEGIN_DECLS
 
 #include "types.h" // for tf_t below
 
-<<<<<<< HEAD
-extern void TimerEntry();     // code defined in entry.S
-extern void Loader(tf_t *);   // code defined in entry.S
-extern void GetPidEntry();
-extern void SleepEntry();
-
-extern void SpawnEntry();
-extern void SemInitEntry();
-extern void SemWaitEntry();
-extern void SemPostEntry();
-=======
 void TimerEntry();     // code defined in entry.S
 void Loader(tf_t *);   // code defined in entry.S
 void GetPidEntry();
@@ -55,7 +41,8 @@ void SemPostEntry();
 
 void MsgSndEntry();
 void MsgRcvEntry();
->>>>>>> b8a9e70220cc217dedb00b209013c8d21b381054
+
+void IRQ7Entry();
 
 __END_DECLS
 
