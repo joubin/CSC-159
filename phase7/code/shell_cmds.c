@@ -32,7 +32,7 @@ void ShellDir(char *str, int stdout, int filesys) {
    char path[NUM_BYTE], line[NUM_BYTE];
    stat_t *p;
    msg_t msg;
-
+   int fd;
 // if str is "dir\0" assume home (root) dir "/"
 // else, assume user specified a path after first 4 letters "dir "
    if(MyStrCmp(str, "dir\0") == 1) {
@@ -50,8 +50,16 @@ void ShellDir(char *str, int stdout, int filesys) {
 // put op code STAT in msg.nums[0]
 // send msg to FileSys, receive from FileSys, result is msg.nums[0]
 //*************************************************************************
+   memcpy(msg.bytes, path, NUM_BYTE);
+   msg.numbers[0] = STAT_NAME;
+
+   MsgSnd(file_sys_pid, &msg); 
+   MsgRcv(&msg);
 
    if(msg.nums[0] != OK) {
+      sprintf(msg.bytes,"dir: error (%d) stat-ing (%s)\n", result, path);
+      MsgSnd(stdout_pid, &msg);
+      MsgRcv(&msg);
 
 //*************************************************************************
 // write code:
@@ -70,6 +78,9 @@ void ShellDir(char *str, int stdout, int filesys) {
    if( ! S_ISDIR(p->mode) ) // if not dir, it's a file, detail-list it
    {
       DirLine(p, line); // line is to be built and returned by subroutine
+      memcpy(msg.bytes, line, NUM_BYTE);
+      MsgSnd(stdout_pid, &msg);
+      MsgRcv(&msg);  
 
 //*************************************************************************
 // write code:
@@ -88,7 +99,11 @@ void ShellDir(char *str, int stdout, int filesys) {
 // send msg to FileSys, receive msg from file sys (msg.nums[0] is result
 // code and msg.nums[2] is the fd assigned)
 //*************************************************************************
-
+      memcpy(msg.bytes, path, NUM_BYTE);
+      msg.numbers[0] = OPEN_NAME;
+      MsgSnd(file_sys_pid, &msg);
+      MsgRcv(&msg);
+      fd = msg.numbers[2];
    while(msg.nums[0] == OK) {
 //*************************************************************************
 // write code:
@@ -96,22 +111,41 @@ void ShellDir(char *str, int stdout, int filesys) {
 // receive from FileSys, what's read is in msg.bytes
 // if result not OK, break loop
 //*************************************************************************
-
+      msg.numbers[0] = READ_FD;
+      msg.numbers[2] = fd;
+      MsgSnd(file_sys_pid, &msg);
+      MsgRcv(&msg);
       p = (stat_t *)msg.bytes;
       DirLine(p, line); // convert msg.bytes into a detail line
-
+      if (msg.nums[0] != OK)
+      {
+         return; // we cant go past this if the DirLine doesnt work 
+      }
+      memcpy(msg.bytes, line, NUM_BYTE);
+      MsgSnd(stdout_pid,&msg);
+      MsgRcv(&msg);
 //*************************************************************************
 // write code:
 // prep and send msg to Stdout to show the converted line[]
 // receive synchro msg from Stdout
 //*************************************************************************
    }
+      msg.numbers[0] = CLOSE_FD;
+      msg.numbers[2] = fd;
+      MsgSnd(file_sys_pid, &msg);
+      MsgRcv(&msg);
 
 //*************************************************************************
 // write code:
 // request FileSys to close
 // if result NOT OK, display an error msg...
 //*************************************************************************
+      if (msg.numbers[0] != OK)
+      {
+         memcpy(msg.bytes, "Error: Can not close!\n\0", NUM_BYTE);
+         MsgSnd(stdout_pid,&msg);
+         MsgRcv(&msg);
+      }
 }
 
 void ShellType(char *str, int stdout, int filesys) {
@@ -139,7 +173,26 @@ void ShellType(char *str, int stdout, int filesys) {
 //    display an error msg...
 //    return;                  // we can't continue
 //*************************************************************************
+   if(strcmp("type\0", str) == 0)
+   {
+      file[0] = '/'; // start for file path
+      file[1] = '\0'; // null-terminate
+   }
+   else // if not the type, get the path
+   {
+      str += 5;
+      strcpy(file, str); 
+   }
+   // If the resutl is not ok:
+   if (msg.numbers[0] != OK)
+   {
+      memcpy(msg.bytes,"Error: Can not read file!\n\0", NUM_BYTE);
+      MsgSnd(stdout_pid, &msg);
+      MsgRcv(&msg);
+      return; // cant continue 
+   }
 
+   p = (stat_t *)msg.bytes; 
 //*************************************************************************
 // write code:
 // request FileSys to OPEN (prep msg, send FileSys)
@@ -153,12 +206,53 @@ void ShellType(char *str, int stdout, int filesys) {
 //    send it to Stdout to show it to terminal
 //    receive synchro msg back
 //*************************************************************************
+ if (S_ISDIR(p->mode))
+ {
+      memcpy(msg.bytes,"Error: Cant read a dir!\n\0", NUM_BYTE);
+      MsgSnd(stdout_pid, &msg);
+      MsgRcv(&msg);
+      return;
+ }else{
+      memcpy(msg.bytes, file, NUM_BYTE);
+      msg.numbers[0] = OPEN_NAME;
+      MsgSnd(file_sys_pid, &msg);
+      MsgRcv(&msg);
 
+      msg.numbers[0] = READ_FD;
+      MsgSnd(file_sys_pid, &msg);
+      MsgRcv(&msg);
+
+      while(msg.numbers[0] != END_OF_FILE)
+      {
+         MsgSnd(stdout_pid, &msg);
+         MsgRcv(&msg);
+
+         msg.numbers[0] = READ_FD;
+         MsgSnd(file_sys_pid, &msg);
+         MsgRcv(&msg);
+      }
+      //Reached end of file
+
+      memcpy(msg.bytes,"\n\0",NUM_BYTE);
+      MsgSnd(stdout_pid, &msg);
+      MsgRcv(&msg);
+
+      msg.numbers[0] = CLOSE_FD;
+      MsgSnd(file_sys_pid, &msg);
+      MsgRcv(&msg);
+ }
 //*************************************************************************
 // write code:
 // request FileSys to close
 // if result NOT OK, display an error msg...
 //*************************************************************************
+ if (msg.numbers[0] != OK)
+   {
+      memcpy(msg.bytes,"Error: Can not read file!\n\0", NUM_BYTE);
+      MsgSnd(stdout_pid, &msg);
+      MsgRcv(&msg);
+      return; // cant continue 
+   }
 }
 
 //*************************************************************************
