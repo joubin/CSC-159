@@ -259,3 +259,44 @@ void ShellType(char *str, int stdout, int filesys) {
 // write code:
 // Other shell commands...
 //*************************************************************************
+
+void ShellHelp(int stdout_pid){
+   msg_t msg;
+   char print_help[] = "\n====================Walls OS=====================\n\0";
+   memcpy(msg.bytes, print_help, NUM_BYTE);
+   MsgSnd(stdout_pid, &msg);
+   MsgRcv(&msg);
+
+   //print buffer small, spliting to multiple messages
+   memcpy(print_help, "\tHelp\n\twho:\tDisplays our OS team name\n\n\tbye:\tQuits the shell\n\0", NUM_BYTE);
+   memcpy(msg.bytes, print_help, NUM_BYTE);
+   MsgSnd(stdout_pid,&msg);
+   MsgRcv(&msg);
+   
+   //Buffer still small, getting segfult, moving spliting message
+   memcpy(print_help, "\tprint <filename>:\tprints specified file\n\0", NUM_BYTE);
+   memcpy(msg.bytes, print_help, NUM_BYTE);
+   MsgSnd(stdout_pid,&msg);
+   MsgRcv(&msg);
+
+   memcpy(print_help,  "\tdir [path]:\tlists the content of the directory.\n\ttype <filename>:\tPrints the file\n\0", NUM_BYTE);  
+   memcpy(msg.bytes, print_help, NUM_BYTE);
+   MsgSnd(stdout_pid,&msg);
+   MsgRcv(&msg);
+
+   memcpy(print_help,  "\n====================Walls OS=====================\n\0", NUM_BYTE);  
+   memcpy(msg.bytes, print_help, NUM_BYTE);
+   MsgSnd(stdout_pid,&msg);
+   MsgRcv(&msg);
+
+}
+
+
+void ShellWho(int stdout_pid){
+   // The who commands :) 
+   msg_t msg;
+   char dr_who[] = "Walls OS! !Windows\n\t\t all right reserved || Fall 2013\n\0";
+   memcpy(msg.bytes, dr_who, NUM_BYTE);
+   MsgSnd(stdout_pid, &msg);
+   MsgRcv(&msg);
+}
