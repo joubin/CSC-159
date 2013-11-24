@@ -43,6 +43,7 @@ void ShellDir(char *str, int stdout, int filesys) {
       MyStrCpy(path, str); // make sure str is null-terminated from Shell()
    }
 
+
 //*************************************************************************
 // write code:
 // prep msg: path[] in msg.bytes:
@@ -130,11 +131,12 @@ void ShellDir(char *str, int stdout, int filesys) {
 // receive synchro msg from Stdout
 //*************************************************************************
    }
+
       msg.numbers[0] = CLOSE_FD;
       msg.numbers[2] = fd;
       MsgSnd(file_sys_pid, &msg);
       MsgRcv(&msg);
-
+}
 //*************************************************************************
 // write code:
 // request FileSys to close
@@ -175,14 +177,19 @@ void ShellType(char *str, int stdout, int filesys) {
 //*************************************************************************
    if(strcmp("type\0", str) == 0)
    {
-      file[0] = '/'; // start for file path
       file[1] = '\0'; // null-terminate
+      file[0] = '/'; // start for file path
    }
    else // if not the type, get the path
    {
-      str += 5;
+      str = str + 5;
       strcpy(file, str); 
    }
+   memcpy(msg.bytes, file, NUM_BYTE);
+   msg.numbers[0] = STAT_NAME;
+
+   MsgSnd(file_sys_pid, &msg);
+   MsgRcv(&msg);
    // If the resutl is not ok:
    if (msg.numbers[0] != OK)
    {
@@ -241,6 +248,7 @@ void ShellType(char *str, int stdout, int filesys) {
       MsgSnd(file_sys_pid, &msg);
       MsgRcv(&msg);
  }
+}
 //*************************************************************************
 // write code:
 // request FileSys to close
@@ -299,4 +307,73 @@ void ShellWho(int stdout_pid){
    memcpy(msg.bytes, dr_who, NUM_BYTE);
    MsgSnd(stdout_pid, &msg);
    MsgRcv(&msg);
+}
+
+void ShellPrint(char *str,int printd_pid,int file_sys_pid)
+{
+   char file[NUM_BYTE];
+   stat_t *p;
+   msg_t msg;
+   int result; // result returned (in msg) from querying file sys
+
+   if(strcmp("print\0", str) == 0)
+   {
+      file[0] = '/';
+      file[1] = '\0'; // null-terminate the path[]
+   }
+   else // skip 1st 5 letters "type " and get the file name
+   {
+      str += 6;
+      strcpy(file, str); // make sure str is null-terminated from Shell()
+   }
+
+   memcpy(msg.bytes, file, NUM_BYTE);
+   msg.numbers[0] = STAT_NAME;
+
+   MsgSnd(file_sys_pid, &msg);
+   MsgRcv(&msg);
+   result = msg.numbers[0];
+
+   if(result != OK)
+   {
+      memcpy(msg.bytes,"file not found or unreadable\n\0", NUM_BYTE);
+      MsgSnd(printd_pid, &msg);
+      return;
+   }
+
+   p = (stat_t *)msg.bytes;    // p, status type pointer
+
+   if(!S_ISDIR(p->mode) ) // if not dir, it's a file
+   {
+      memcpy(msg.bytes, file, NUM_BYTE);
+      msg.numbers[0] = OPEN_NAME;
+      MsgSnd(file_sys_pid, &msg);
+      MsgRcv(&msg);
+
+      msg.numbers[0] = READ_FD;
+      MsgSnd(file_sys_pid, &msg);
+      MsgRcv(&msg);
+
+      while(msg.numbers[0] != END_OF_FILE)
+      {
+         MsgSnd(printd_pid, &msg);
+         
+         msg.numbers[0] = READ_FD;
+         MsgSnd(file_sys_pid, &msg);
+         MsgRcv(&msg);
+      }
+      
+      memcpy(msg.bytes,"\n\0",NUM_BYTE);
+      MsgSnd(printd_pid, &msg);
+            
+      msg.numbers[0] = CLOSE_FD;
+      MsgSnd(file_sys_pid, &msg);
+      MsgRcv(&msg);
+   }
+   else
+   {
+      memcpy(msg.bytes,"file not found or unreadable\n\0", NUM_BYTE);
+      MsgSnd(printd_pid, &msg);
+      return;
+   }
 }
