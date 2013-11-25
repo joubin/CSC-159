@@ -314,7 +314,6 @@ void ShellPrint(char *str,int printd_pid,int file_sys_pid)
    char file[NUM_BYTE];
    stat_t *p;
    msg_t msg;
-   int result; // result returned (in msg) from querying file sys
 
    if(strcmp("print\0", str) == 0)
    {
@@ -332,19 +331,25 @@ void ShellPrint(char *str,int printd_pid,int file_sys_pid)
 
    MsgSnd(file_sys_pid, &msg);
    MsgRcv(&msg);
-   result = msg.numbers[0];
 
-   if(result != OK)
+   if(msg.numbers[0] != OK)
+   {
+      memcpy(msg.bytes,"Error: File not found\n\0", NUM_BYTE);
+      MsgSnd(printd_pid, &msg);
+      return;
+   }
+
+   p = (stat_t *)msg.bytes;    
+
+   if(S_ISDIR(p->mode) )  // if its not a directory Just like the type
    {
       memcpy(msg.bytes,"file not found or unreadable\n\0", NUM_BYTE);
       MsgSnd(printd_pid, &msg);
       return;
    }
-
-   p = (stat_t *)msg.bytes;    // p, status type pointer
-
-   if(!S_ISDIR(p->mode) ) // if not dir, it's a file
+   else
    {
+
       memcpy(msg.bytes, file, NUM_BYTE);
       msg.numbers[0] = OPEN_NAME;
       MsgSnd(file_sys_pid, &msg);
@@ -369,11 +374,9 @@ void ShellPrint(char *str,int printd_pid,int file_sys_pid)
       msg.numbers[0] = CLOSE_FD;
       MsgSnd(file_sys_pid, &msg);
       MsgRcv(&msg);
-   }
-   else
-   {
-      memcpy(msg.bytes,"file not found or unreadable\n\0", NUM_BYTE);
-      MsgSnd(printd_pid, &msg);
-      return;
+
+
+
    }
 }
+
