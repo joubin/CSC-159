@@ -8,6 +8,8 @@
 #include "q_mgmt.h"
 #include "irq7.h"
 #include "irq34.h"
+#include "shell_cmds.h"
+#include "filesys.h"
 
 void IdleProc()
 {
@@ -24,11 +26,13 @@ void Init() // handles key events, move the handling code out of Kernel()
 {
 	int i;
 	int printdriver_pid = Spawn(PrintDriver);
+	int filesys_pid = Spawn(FileSys);
 	int shell1_pid = Spawn(Shell);
 	int shell2_pid = Spawn(Shell);
 	msg_t msg;
 	msg.numbers[0] = printdriver_pid;
 	msg.numbers[1] = 0;
+	msg.numbers[2] = filesys_pid;
 	MsgSnd(shell1_pid, &msg);
 	msg.numbers[1] = 1;
 	MsgSnd(shell2_pid, &msg);
@@ -53,7 +57,7 @@ void Init() // handles key events, move the handling code out of Kernel()
 
 void Shell()
 {
-	int term_num, stdin_pid, stdout_pid, print_driver_pid;
+	int term_num, stdin_pid, stdout_pid, print_driver_pid, file_sys_pid;
 	char login[50], passwd[50], cmd_str[50];
 	msg_t msg;
 
@@ -61,6 +65,7 @@ void Shell()
 
 	term_num = msg.numbers[1];
 	print_driver_pid = msg.numbers[0];
+	file_sys_pid = msg.numbers[2];
 	TerminalInit(term_num);
 	
 	stdin_pid = Spawn(Stdin);
@@ -131,23 +136,19 @@ void Shell()
 					MsgRcv(&msg);
 					break;
 				}
-				else if (MyStrCmp(cmd_str, "dir") == 1)
-				{
-					ShellDir(cmd_str, stdout_pid, file_sys_pid);
-				}
-				else if (MyStrCmp(cmd_str, "type") == 1)
+				else if (MyMemCmp(cmd_str, "type", 4) == 1)
 				{
 					ShellType(cmd_str, stdout_pid, file_sys_pid);
 				}
-				else if (MyStrCmp(cmd_str, "print") == 1)
+				else if (MyMemCmp(cmd_str, "print", 5) == 1)
 				{
 					ShellPrint(cmd_str,print_driver_pid, file_sys_pid);
 				}
-				else if (MyStrCmp(cmd_str, "dir") == 1)
+				else if (MyMemCmp(cmd_str, "dir", 3) == 1)
 				{
 					ShellDir(cmd_str, stdout_pid, file_sys_pid);
 				}
-				else if (MyStrCmp(cmd_str, "") == 1)
+				else if (cmd_str[0] == '\0')
 				{
 					continue;
 				}else

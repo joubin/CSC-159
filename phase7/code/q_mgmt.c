@@ -184,3 +184,16 @@ int MyStrCmp(char *first, char *second)
 	} while (*(first++) == *(second++));
 	return 0;
 }
+
+int MyMemCmp(char *first, char *second, int size)
+{
+	int i;
+	for (i = 0; i < size; i++)
+	{
+		if (first[i] != second[i])
+		{
+			return 0;
+		}
+	}
+	return 1;
+}

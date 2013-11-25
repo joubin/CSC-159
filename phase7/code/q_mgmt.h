@@ -26,6 +26,7 @@ void MyBZero(char *, int);
 void MyStrCpy(char *, char *);
 void MyMemCpy(char *, char *, int);
 int MyStrCmp(char *, char *);
+int MyMemCmp(char *, char *, int);
 
 #endif
 

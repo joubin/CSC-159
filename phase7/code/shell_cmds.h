@@ -1,9 +1,11 @@
 //shell_cmds.h
 
 #ifndef _SHELL_CMDS_H_
-#define _SHELL_CMDS_H_
+#define _SHELL_CMDS_H
 
-void DirLine(stat_t *p, char *line);
+#include "filesys.h"
+
+void DirLine(stat_t *, char *);
 void ShellDir(char *str,int,int);
 void ShellType(char *str,int,int);
 

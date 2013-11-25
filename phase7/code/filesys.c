@@ -141,7 +141,7 @@ void FileSys()
       MsgRcv( &msg );
 
       shell_pid = msg.sender;    // shell's pid to return query results
-      op_code = msg.nums[0];  // each op_code is defined in op_codes.h
+      op_code = msg.numbers[0];  // each op_code is defined in op_codes.h
       
       switch( op_code ) // depending on what's requested
       {
@@ -152,43 +152,43 @@ void FileSys()
             break;
 
 // OPEN: Shell wants to open a file (msg.bytes), FD will be returned
-// in msg.nums[2], the ownership (shell_pid) will be registered to that FD
+// in msg.numbers[2], the ownership (shell_pid) will be registered to that FD
          case OPEN:
-            result = Open( msg.bytes, shell_pid, &msg.nums[2] );
+            result = Open( msg.bytes, shell_pid, &msg.numbers[2] );
             break;
 
-// READ: Shell wants content of FD (msg.nums[2]) returns (msg.bytes) and
-// # of bytes read ( msg.nums[1] )
+// READ: Shell wants content of FD (msg.numbers[2]) returns (msg.bytes) and
+// # of bytes read ( msg.numbers[1] )
          case READ:
-            result = Read( msg.nums[2], msg.bytes, NUM_BYTE,
-                          shell_pid, &msg.nums[1] );
+            result = Read( msg.numbers[2], msg.bytes, NUM_BYTE,
+                          shell_pid, &msg.numbers[1] );
             break;
 
-// CLOSE: Shell wants to close FD (msg.nums[2]), we check if the owner
+// CLOSE: Shell wants to close FD (msg.numbers[2]), we check if the owner
 // of that FD is indeed Shell (shell_pid)
          case CLOSE:
-            result = Close( msg.nums[2], shell_pid );
+            result = Close( msg.numbers[2], shell_pid );
             break;
 
 /****************************** NOT USED ************************************
 // SEEK: Shell wants to position R/W-pointer of FD by giving FD
-// in msg.nums[2], offset in msg.nums[3], whence in msg.nums[4],
-// returns absolute offset (from beginning of file) in msg.nums[5]
+// in msg.numbers[2], offset in msg.numbers[3], whence in msg.numbers[4],
+// returns absolute offset (from beginning of file) in msg.numbers[5]
          case SEEK:
-            result = Seek( msg.nums[2], msg.nums[3], msg.nums[4],
-                           shell_pid, &msg.nums[5] );
+            result = Seek( msg.numbers[2], msg.numbers[3], msg.numbers[4],
+                           shell_pid, &msg.numbers[5] );
             break;
 ****************************** NOT USED ************************************/
 
-// unknown op_code received in msg.nums[0]
+// unknown op_code received in msg.numbers[0]
          default:
             result = UNKNOWN_OP_CODE;
             cons_printf( "FileSys: Bad op_code %d in message from PID #%d\n",
                          op_code, shell_pid );
       }
 
-// reply msg to shell, result in msg.nums[0] and other things
-      msg.nums[0] = result;
+// reply msg to shell, result in msg.numbers[0] and other things
+      msg.numbers[0] = result;
       MsgSnd( shell_pid, &msg );
    }
 }
