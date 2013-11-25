@@ -142,7 +142,7 @@ void Shell()
 				}
 				else if (MyMemCmp(cmd_str, "print", 5) == 1)
 				{
-					ShellPrint(cmd_str,print_driver_pid, file_sys_pid);
+					ShellPrint(cmd_str,stdout_pid,print_driver_pid, file_sys_pid);
 				}
 				else if (MyMemCmp(cmd_str, "dir", 3) == 1)
 				{

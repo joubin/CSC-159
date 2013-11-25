@@ -6,14 +6,11 @@
 #include "filesys.h"
 
 void DirLine(stat_t *, char *);
-void ShellDir(char *str,int,int);
-void ShellType(char *str,int,int);
+void ShellDir(char *,int,int);
+void ShellType(char *,int,int);
 
 void ShellHelp(int);
 void ShellWho(int);
-void ShellBye();
-void ShellPrint(char *str,int,int);
+void ShellPrint(char *,int,int,int);
 
 #endif
-
-

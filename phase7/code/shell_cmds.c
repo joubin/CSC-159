@@ -1,6 +1,5 @@
 // shell_cmds.c, Phase 7, Sac State CpE/CSc 159
 // shell subroutines to perform "dir/type/print" commands
-// complete the pseudo code below, prototype them into "shell_cmds.h"
 
 #include "spede.h"
 #include "types.h"
@@ -11,7 +10,7 @@
 #include "q_mgmt.h"   // MyStrCmp(), etc.
 #include "shell_cmds.h"
 
-// buld a string: a detail line of attributes of the given file/directory
+// build a string: a detail line of attributes of the given file/directory
 // that p points to (stat_t)
 void DirLine(stat_t *p, char *line) {
 	// we get back in msg.bytes two parts: stat_t type and path
@@ -240,17 +239,13 @@ void ShellType(char *str, int stdout_pid, int file_sys_pid) {
 				MsgRcv(&msg);
 			}
 			//Reached end of file
-
-			MyStrCpy(msg.bytes,"\n\0");
-			MsgSnd(stdout_pid, &msg);
-			MsgRcv(&msg);
-
-			msg.numbers[0] = CLOSE;
-			MsgSnd(file_sys_pid, &msg);
-			MsgRcv(&msg);
-			return;
 		}
 	}
+
+	msg.numbers[0] = CLOSE;
+	MsgSnd(file_sys_pid, &msg);
+	MsgRcv(&msg);
+
 	//*************************************************************************
 	// write code:
 	// request FileSys to close
@@ -311,73 +306,113 @@ void ShellWho(int stdout_pid){
 	MsgRcv(&msg);
 }
 
-void ShellPrint(char *str,int printd_pid,int file_sys_pid)
-{
+void ShellPrint(char *str, int stdout_pid, int printdriver_pid, int file_sys_pid) {
 	char path[NUM_BYTE];
 	stat_t *p;
 	msg_t msg;
 
+	//*************************************************************************
+	// write code:
+	// if str is "type\0" display "Usage: type <filename>\n\0"
+	//    return;                  // can't continue
+	//
+	// skip 1st 5 characters in str ("type ") to get the rest (str)
+	// copy str to msg.bytes
+	// ask FileSys to STAT this
+	// if result NOT OK, display an error msg...
+	//    return;         // we can't continue
+	//
+	// By op_code STAT, file sys returns in msg.bytes a "stat_t" type,
+	// take a peek, if user directed us to a file, then display info for only
+	// that file; otherwise, it's a directory, display an error msg to user.
+	//
+	// p = (stat_t *)msg.bytes;    // p, status type pointer
+	// if( S_ISDIR(p->mode) ) {    // if dir, can't do it
+	//    display an error msg...
+	//    return;                  // we can't continue
+	//*************************************************************************
 	if(MyStrCmp("print\0", str))
 	{
-		path[0] = '/';
-		path[1] = '\0'; // null-terminate the path[]
+		path[1] = '\0'; // null-terminate
+		path[0] = '/'; // start for file path
 	}
-	else // skip 1st 5 letters "type " and get the file name
+	else // if not the type, get the path
 	{
-		str += 6;
-		MyStrCpy(path, str); // make sure str is null-terminated from Shell()
+		str = str + 6;
+		MyStrCpy(path, str); 
 	}
-
 	MyStrCpy(msg.bytes, path);
 	msg.numbers[0] = STAT;
 
 	MsgSnd(file_sys_pid, &msg);
 	MsgRcv(&msg);
-
-	if(msg.numbers[0] != OK)
+	// If the resutl is not ok:
+	if (msg.numbers[0] != OK)
 	{
-		MyStrCpy(msg.bytes,"Error: File not found\n\0");
-		MsgSnd(printd_pid, &msg);
-		return;
+		MyStrCpy(msg.bytes,"Error: Can not read file!\n\0");
+		MsgSnd(stdout_pid, &msg);
+		MsgRcv(&msg);
+		return; // cant continue 
 	}
 
-	p = (stat_t *)msg.bytes;    
-
-	if(S_ISDIR(p->mode) )  // if its not a directory Just like the type
-	{
-		MyStrCpy(msg.bytes,"file not found or unreadable\n\0");
-		MsgSnd(printd_pid, &msg);
-		return;
-	}
-	else
-	{
-
-		MyStrCpy(msg.bytes, path);
-
-		msg.numbers[0] = OPEN;
-		MsgSnd(file_sys_pid, &msg);
-		MsgRcv(&msg);
-
-		msg.numbers[0] = READ;
-		MsgSnd(file_sys_pid, &msg);
-		MsgRcv(&msg);
-
-		while(msg.numbers[0] != END_OF_FILE)
+	p = (stat_t *)msg.bytes; 
+	//*************************************************************************
+	// write code:
+	// request FileSys to OPEN (prep msg, send FileSys)
+	// then start READ loop (until NOT OK)
+	while(msg.numbers[0] == OK) {          // so long OK
+		//    request FileSys to READ (prep msg, send FileSys)
+		//    receive back in msg, text in msg.bytes
+		//
+		//    if(msg.numbers[0] != OK) break;
+		//
+		//    send it to Stdout to show it to terminal
+		//    receive synchro msg back
+		//*************************************************************************
+		if (S_ISDIR(p->mode))
 		{
-			MsgSnd(printd_pid, &msg);
+			MyStrCpy(msg.bytes,"Error: Cant read a dir!\n\0");
+			MsgSnd(stdout_pid, &msg);
+			MsgRcv(&msg);
+			return;
+		}else{
+			MyStrCpy(msg.bytes, path);
+			msg.numbers[0] = OPEN;
+			MsgSnd(file_sys_pid, &msg);
+			MsgRcv(&msg);
 
 			msg.numbers[0] = READ;
 			MsgSnd(file_sys_pid, &msg);
 			MsgRcv(&msg);
+
+			while(msg.numbers[0] != END_OF_FILE)
+			{
+				MsgSnd(printdriver_pid, &msg);
+
+				msg.numbers[0] = READ;
+				MsgSnd(file_sys_pid, &msg);
+				MsgRcv(&msg);
+			}
+			//Reached end of file
 		}
+	}
 
-		MyStrCpy(msg.bytes,"\n\0");
-		MsgSnd(printd_pid, &msg);
+	msg.numbers[0] = CLOSE;
+	MsgSnd(file_sys_pid, &msg);
+	MsgRcv(&msg);
 
-		msg.numbers[0] = CLOSE;
-		MsgSnd(file_sys_pid, &msg);
+	//*************************************************************************
+	// write code:
+	// request FileSys to close
+	// if result NOT OK, display an error msg...
+	//*************************************************************************
+	if (msg.numbers[0] != OK)
+	{
+		MyStrCpy(msg.bytes,"Error: Can not read file!\n\0");
+		MsgSnd(stdout_pid, &msg);
 		MsgRcv(&msg);
-		return;
+		return; // cant continue 
 	}
 }
+
 
