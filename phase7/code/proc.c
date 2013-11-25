@@ -116,26 +116,67 @@ void Shell()
 			MsgRcv(&msg);
 			MyStrCpy(cmd_str, msg.bytes);
 
-			if (MyStrCmp(cmd_str, "print\0"))
-			{
-				MyStrCpy(msg.bytes, "walls\n");
-				MsgSnd(print_driver_pid, &msg);
-			}
-			else if (MyStrCmp(cmd_str, "bye\0"))
-			{
-				break;
-			}
-			else if (MyStrCmp(cmd_str, ""))
-			{
-				continue;
-			}
-			else
-			{
-				// Display error and block on completion
-				MyStrCpy(msg.bytes,"Invalid command!\n\0");
-				MsgSnd(stdout_pid, &msg);
-				MsgRcv(&msg);
-			}
+				if (MyStrCmp(cmd_str, "help") == 1)
+				{
+					ShellHelp(stdout_pid);
+				}
+				else if (MyStrCmp(cmd_str, "who") == 1)
+				{
+					ShellWho(stdout_pid);
+				}
+				else if (MyStrCmp(cmd_str, "bye") == 1)
+				{
+					MyStrCpy(msg.bytes,"Have a nice day!!\n");
+					MsgSnd(stdout_pid,&msg);
+					MsgRcv(&msg);
+					break;
+				}
+				else if (MyStrCmp(cmd_str, "dir") == 1)
+				{
+					ShellDir(cmd_str, stdout_pid, file_sys_pid);
+				}
+				else if (MyStrCmp(cmd_str, "type") == 1)
+				{
+					ShellType(cmd_str, stdout_pid, file_sys_pid);
+				}
+				else if (MyStrCmp(cmd_str, "print") == 1)
+				{
+					ShellPrint(cmd_str,print_driver_pid, file_sys_pid);
+				}
+				else if (MyStrCmp(cmd_str, "dir") == 1)
+				{
+					ShellDir(cmd_str, stdout_pid, file_sys_pid);
+				}
+				else if (MyStrCmp(cmd_str, "") == 1)
+				{
+					continue;
+				}else
+				{
+					// Display error and block on completion
+					MyStrCpy(msg.bytes,"Invalid command!\n\0");
+					MsgSnd(stdout_pid, &msg);
+					MsgRcv(&msg);	
+				}
+			// if (MyStrCmp(cmd_str, "print\0"))
+			// {
+			// 	MyStrCpy(msg.bytes, "walls\n");
+			// 	MsgSnd(print_driver_pid, &msg);
+			// }
+			// else if (MyStrCmp(cmd_str, "bye\0"))
+			// {
+			// 	break;
+			// }
+			// else if (MyStrCmp(cmd_str, ""))
+			// {
+			// 	continue;
+			// }
+			// else
+			// {
+			// 	// Display error and block on completion
+			// 	MyStrCpy(msg.bytes,"Invalid command!\n\0");
+			// 	MsgSnd(stdout_pid, &msg);
+			// 	MsgRcv(&msg);
+			// }
 		}
 	}
 }
