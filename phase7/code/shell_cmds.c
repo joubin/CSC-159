@@ -45,14 +45,14 @@ void ShellDir(char *str, int stdout_pid, int file_sys_pid) {
 
 
 	
-	MyStrCpy(msg.bytes, path);
-	msg.numbers[0] = STAT;
+	MyStrCpy(msg.bytes, path); // copy whats left of the path
+	msg.numbers[0] = STAT; // set the stat 
 
-	MsgSnd(file_sys_pid, &msg); 
-	MsgRcv(&msg);
+	MsgSnd(file_sys_pid, &msg); // add tot he message queue
+	MsgRcv(&msg); // read the return code
 
-	if(msg.numbers[0] != OK) {		
-		MsgSnd(stdout_pid, &msg);
+	if(msg.numbers[0] != OK) { //if not ok
+		MsgSnd(stdout_pid, &msg); //send stdout_pid
 		MsgRcv(&msg);
 
 		return;        // we can't continue
