@@ -46,10 +46,10 @@ void SemPostEntry();
 void MsgSndEntry();
 void MsgRcvEntry();
 
-void IRQ7Entry();
-
 void IRQ3Entry();
 void IRQ4Entry();
+void IRQ7Entry();
+
 
 __END_DECLS
 

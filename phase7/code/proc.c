@@ -8,6 +8,8 @@
 #include "q_mgmt.h"
 #include "irq7.h"
 #include "irq34.h"
+#include "shell_cmds.h"
+#include "filesys.h"
 
 void IdleProc()
 {
@@ -24,11 +26,13 @@ void Init() // handles key events, move the handling code out of Kernel()
 {
 	int i;
 	int printdriver_pid = Spawn(PrintDriver);
+	int filesys_pid = Spawn(FileSys);
 	int shell1_pid = Spawn(Shell);
 	int shell2_pid = Spawn(Shell);
 	msg_t msg;
 	msg.numbers[0] = printdriver_pid;
 	msg.numbers[1] = 0;
+	msg.numbers[2] = filesys_pid;
 	MsgSnd(shell1_pid, &msg);
 	msg.numbers[1] = 1;
 	MsgSnd(shell2_pid, &msg);
@@ -53,7 +57,7 @@ void Init() // handles key events, move the handling code out of Kernel()
 
 void Shell()
 {
-	int term_num, stdin_pid, stdout_pid, print_driver_pid;
+	int term_num, stdin_pid, stdout_pid, print_driver_pid, file_sys_pid;
 	char login[50], passwd[50], cmd_str[50];
 	msg_t msg;
 
@@ -61,6 +65,7 @@ void Shell()
 
 	term_num = msg.numbers[1];
 	print_driver_pid = msg.numbers[0];
+	file_sys_pid = msg.numbers[2];
 	TerminalInit(term_num);
 	
 	stdin_pid = Spawn(Stdin);
@@ -116,26 +121,46 @@ void Shell()
 			MsgRcv(&msg);
 			MyStrCpy(cmd_str, msg.bytes);
 
-			if (MyStrCmp(cmd_str, "print\0"))
-			{
-				MyStrCpy(msg.bytes, "walls\n");
-				MsgSnd(print_driver_pid, &msg);
-			}
-			else if (MyStrCmp(cmd_str, "bye\0"))
-			{
-				break;
-			}
-			else if (MyStrCmp(cmd_str, ""))
-			{
-				continue;
-			}
-			else
-			{
-				// Display error and block on completion
-				MyStrCpy(msg.bytes,"Invalid command!\n\0");
-				MsgSnd(stdout_pid, &msg);
-				MsgRcv(&msg);
-			}
+				if (MyStrCmp(cmd_str, "help") == 1) // if help is typed in
+				{
+					ShellHelp(stdout_pid);
+				}
+				else if (MyStrCmp(cmd_str, "who") == 1) // if who is typed in
+				{
+					ShellWho(stdout_pid);
+				}
+				else if ((MyStrCmp(cmd_str, "bye") == 1) || (MyStrCmp(cmd_str, "logout") == 1)) // if bye or logout is typed in
+				{
+					MyStrCpy(msg.bytes,"Have a nice day!!\n");
+					MsgSnd(stdout_pid,&msg);
+					MsgRcv(&msg);
+					break;
+				}
+				else if (MyMemCmp(cmd_str, "type", 4) == 1) // if type is typed in
+				{
+					ShellType(cmd_str, stdout_pid, file_sys_pid);
+				}
+				else if (MyMemCmp(cmd_str, "print", 5) == 1) // if print is typed in
+				{
+					ShellPrint(cmd_str,stdout_pid,print_driver_pid, file_sys_pid); 
+					/** adding the file_sys_pid even though it wasnt in the requirments so that errors
+					* go to consol 
+					**/
+				}
+				else if (MyMemCmp(cmd_str, "dir", 3) == 1) // if dir is typed in
+				{
+					ShellDir(cmd_str, stdout_pid, file_sys_pid);
+				}
+				else if (cmd_str[0] == '\0') // if nothing is typed in
+				{
+					continue;
+				}else //otherwise, print and error since I dont know what this is.
+				{
+					// Display error and block on completion
+					MyStrCpy(msg.bytes,"Invalid command!\n\0");
+					MsgSnd(stdout_pid, &msg);
+					MsgRcv(&msg);	
+				}
 		}
 	}
 }
