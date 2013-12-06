@@ -71,6 +71,19 @@ ENTRY(MsgRcvEntry)
 	pushl $MSGRCV_INTR
 	jmp EnterKernel
 
+
+ENTRY(ForkEntry)
+	pushl $FORK_INTR
+	jmp EnterKernel
+
+ENTRY(WaitEntry)
+	pushl $WAIT_INTR
+	jmp EnterKerne
+
+ENTRY(ExitEntry)
+	pushl $EXIT_INTR
+	jmp EnterKernel
+
 // Common IRQ entry, save context and call Kernel()
 EnterKernel:
 	pusha
