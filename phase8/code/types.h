@@ -20,14 +20,16 @@
 
 #define CHAR_Q_SIZE 20
 
-typedef enum {AVAIL, READY, RUN, SLEEP, WAIT} state_t;
+#define NUM_PAGE 100 // TODO might wanna do 1024 atleast? 
+
+typedef enum {AVAIL, READY, RUN, SLEEP, WAIT, ZOMBIE} state_t;
 
 typedef struct            // PCB describes proc image
 {
 	state_t state;         // state of process
 	int tick_count,        // accumulative run time since dispatched
 	    total_tick_count,
-	    wake_tick;  // accumulative run time since creation
+	    wake_tick, ppid, exit_code;  // accumulative run time since creation
 
 	tf_t *tf_p;            // process register context
 } pcb_t;
@@ -69,6 +71,11 @@ typedef struct
 	int count, head, tail;
 	char q[CHAR_Q_SIZE];
 } char_q_t;
+
+typedef struct
+{
+	int addr,owner;
+} page_t;
 
 #endif
 

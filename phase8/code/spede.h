@@ -25,6 +25,8 @@
 // IRQ_VECTOR(), IRQ_TIMER, IRQ_COM1, ICU0_IOBASE, SPECIFIC_EOI(), etc.
 #include <spede/machine/pic.h>
 
+#include <spede/sys/bloader.h>
+
 #endif
 
 /*  I/O port 0x80 is reserved and will never be used.  If you

@@ -58,6 +58,9 @@ void InitControl()
 	SetIDTEntry(MSGRCV_INTR, MsgRcvEntry);
 	SetIDTEntry(IRQ3_INTR, IRQ3Entry);
 	SetIDTEntry(IRQ4_INTR, IRQ4Entry);
+	SetIDTEntry(FORK_INTR, ForkEntry);
+	SetIDTEntry(WAIT_INTR, WaitEntry);
+	SetIDTEntry(EXIT_INTR, ExitEntry);
 	// 0x66 = 0110 0110 in binary
 	// PIC mask will mask out any IRQs set to 1, starting from IRQ0,
 	// so 0x66 masks IRQ 1, 2, 5, and 6
@@ -84,6 +87,12 @@ void InitData()
 	{
 		EnQ(i, &avail_sem_q);
 
+	}
+
+	for(i=NUM_PAGE ; i > 0; i--)
+	{
+		pages[i].addr = (i*4096) + _topHeapMemory;
+		pages[i].owner = -1;
 	}
 
 	cur_pid = -1;  // no process is running initially
@@ -152,9 +161,30 @@ void Kernel(tf_t *tf_p) // kernel directly enters here when interrupt occurs
 			break;
 		case IRQ3_INTR:
 			IRQ34ISR();
+			break;
 		case IRQ4_INTR:
 			IRQ34ISR();
-	}
+			break;
+		case FORK_INTR:
+			if(!EmptyQ(&avail_q))
+			{	
+				pid = DeQ(&avail_q);
+				ForkISR(pid,(int*)pcbs[cur_pid].tf_p->eax,pcbs[cur_pid].tf_p->ebx);
+				pcbs[cur_pid].tf_p->eax=pid;
+			}
+			else
+			{
+				cons_printf("\nNo more available processes");
+				pcbs[cur_pid].tf_p->eax = -1;
+			}			
+			break;
+		case WAIT_INTR:
+			WaitISR();
+			break;
+		case EXIT_INTR:
+			ExitISR();
+			break;
+}
 
 	Scheduler();                // select a process to run
 	Loader(pcbs[cur_pid].tf_p); // run the process selected

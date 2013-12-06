@@ -66,3 +66,31 @@ void MsgRcv(msg_t * msg) {
 			: "g" (mid), "g" (msg)
 			: "eax", "ebx");
 }
+
+int Fork(int *addr,int size); // *8
+{
+	int pid
+	asm("movl %1, %%eax; movl %2, %%ebx; int $0x38; movl %%eax, %0"
+		:"=g"(pid)
+		:"g" ((int)p, "g"(size))
+		:"eax","ebx");
+	return pid;
+}
+
+int Wait(int *p); // *8
+{
+	int child_pid;
+	asm("movl %1, %%eax; int $0x3A; movl %%eax, %0"
+		:"=g" (child_pid)
+		:"g"((int)p)
+		:"eax");
+	return child_pid;
+}
+
+void Exit(int); // *8
+{
+	asm("movl %0, %%eax; int $0x39"
+		:
+		:"g"((int)p)
+		:"eax");
+}	
