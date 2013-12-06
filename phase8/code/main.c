@@ -13,16 +13,16 @@
 
 // globals:
 int cur_pid, sys_tick;                        // current running PID, -1 means no process
-q_t ready_q, avail_q, sleep_q;               // processes ready to run and not used
-pcb_t pcbs[NUM_PROC];               // process table
 char user_stacks[NUM_PROC][USER_STACK_SIZE]; // run-time stacks for processes
 struct i386_gate *idt_table;
-sem_t sems[NUM_SEM];
-q_t avail_sem_q;
 int print_sid;	// printing flow/control semaphore
 
+q_t avail_sem_q;
 mbox_t mboxes[NUM_PROC];			// Mailboxes
-
+page_t	pages[NUM_PAGE];   			// Pages
+sem_t sems[NUM_SEM];				// semaphores 
+pcb_t pcbs[NUM_PROC];               // process table
+q_t ready_q, avail_q, sleep_q;      // processes ready to run and not used
 
 void SetIDTEntry(int entry_num, func_ptr_t entry_addr){
 	struct i386_gate *gateptr = &idt_table[entry_num];
