@@ -71,7 +71,6 @@ ENTRY(MsgRcvEntry)
 	pushl $MSGRCV_INTR
 	jmp EnterKernel
 
-
 ENTRY(ForkEntry)
 	pushl $FORK_INTR
 	jmp EnterKernel
