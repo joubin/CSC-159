@@ -23,7 +23,7 @@
 
 #define SEL_KCODE 0x08    // kernel's code segment
 #define SEL_KDATA 0x10    // kernel's data segment
-#define KERNAL_STACK_SIZE 8192  // kernel's stack size, in chars
+#define KERNEL_STACK_SIZE 8192  // kernel's stack size, in chars
 
 #define FORK_INTR 0x38
 #define WAIT_INTR 0x39

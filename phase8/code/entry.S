@@ -5,9 +5,9 @@
 #include "entry.h"
 
 // set DS and ES to Kernel's data segment
-#define SET_KERNAL_SEGS movw $(SEL_KDATA), %ax; mov %ax, %ds; mov %ax, %es
+#define SET_KERNEL_SEGS movw $(SEL_KDATA), %ax; mov %ax, %ds; mov %ax, %es
 
-.comm kernal_stack, KERNAL_STACK_SIZE, 1 // define kernel stack space
+.comm kernel_stack, KERNEL_STACK_SIZE, 1 // define kernel stack space
 .text
 
 // Loader() loads registers from trap frame
@@ -93,7 +93,7 @@ EnterKernel:
 	pushl %gs
 	movl %esp, %ecx
 	cld
-	SET_KERNAL_SEGS      // set the DS and ES to kernel's data segments
-	leal kernal_stack + KERNAL_STACK_SIZE, %esp
+	SET_KERNEL_SEGS      // set the DS and ES to kernel's data segments
+	leal kernel_stack + KERNEL_STACK_SIZE, %esp
 	pushl %ecx
 	call CNAME(Kernel)
