@@ -17,4 +17,6 @@ extern mbox_t mboxes[NUM_PROC];            // Mailboxes
 
 extern int print_sid;
 
+extern page_t pages[NUM_PAGE];
+
 #endif

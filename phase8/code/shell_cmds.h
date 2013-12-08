@@ -13,4 +13,6 @@ void ShellHelp(int);
 void ShellWho(int);
 void ShellPrint(char *,int,int,int);
 
+void ShellExecutable(char *, int, int);
+
 #endif

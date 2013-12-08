@@ -21,4 +21,8 @@ void MsgRcvISR();
 
 void IRQ7ISR();
 
+void ForkISR(int, int*);
+void WaitISR();
+void ExitISR();
+
 #endif

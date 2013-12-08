@@ -91,7 +91,7 @@ void InitData()
 
 	for(i=NUM_PAGE ; i > 0; i--)
 	{
-		pages[i].addr = (i*4096) + _topHeapMemory;
+		pages[i].addr = (i*4096) + (int)_topHeapMemory;
 		pages[i].owner = -1;
 	}
 
@@ -168,8 +168,8 @@ void Kernel(tf_t *tf_p) // kernel directly enters here when interrupt occurs
 		case FORK_INTR:
 			if(!EmptyQ(&avail_q))
 			{	
-				pid = DeQ(&avail_q);
-				ForkISR(pid,(int*)pcbs[cur_pid].tf_p->eax,pcbs[cur_pid].tf_p->ebx);
+				int pid = DeQ(&avail_q);
+				ForkISR(pid,(int*)pcbs[cur_pid].tf_p->eax);
 				pcbs[cur_pid].tf_p->eax=pid;
 			}
 			else

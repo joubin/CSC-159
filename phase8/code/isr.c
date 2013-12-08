@@ -215,7 +215,7 @@ void IRQ7ISR() {
    outportb(0x20, 0x67);  // 0x20 is PIC control, 0x67 dismisses IRQ 7
 }
 
-void ForkISR(int pid, int* addr,int size)
+void ForkISR(int pid, int* addr)
 {
 
 	// Only thing new for ForkISR
@@ -229,13 +229,11 @@ void ForkISR(int pid, int* addr,int size)
 	// The rest was a copy from spwnisr. 
 	pages[i].owner = pid;
 	bzero(&pages[i], sizeof(page_t));
-	MyMemCpy((int *)pages[i].addr, addr); 
-
 	
 	MyBzero((void *)user_stacks[pid], USER_STACK_SIZE);
 	MyBzero(&mboxes[pid], sizeof(mbox_t));
 
-	pcbs[pid].tf_p = (tf_t *)&pages[totalMem]; 
+	pcbs[pid].tf_p = (tf_t *)&pages[i+1].addr;
 	pcbs[pid].tf_p--;    // points to trap frame
 
 	pcbs[pid].tf_p->eflags = EF_DEFAULT_VALUE|EF_INTR;
@@ -260,31 +258,26 @@ void ForkISR(int pid, int* addr,int size)
 void WaitISR()
 {
 	int i;
-	int *p;
 	for(i=0;i<NUM_PROC;i++)
 	{
 		if(pcbs[i].ppid == cur_pid && pcbs[i].state == ZOMBIE)
 		{
-			p = pcbs[cur_pid].tf_p->eax;
-			*p = pcbs[i].exit_code;
-			pcbs[cur_pid].tf_p->eax = i;
+			pcbs[cur_pid].tf_p->eax = pcbs[i].exit_code;
 			EnQ(i,&avail_q);
 			pcbs[i].ppid = -1;
 			return;
 		}
 	}
-	
-	pcbs[cur_pid].state = WAIT;
+	pcbs[cur_pid].state = WAIT_CHILD;
 	cur_pid=-1;
 }
 
 
 void ExitISR()
 {	
-	int ppid;
-	int *p;
+	int ppid = pcbs[cur_pid].ppid;
 	
-	if(pcbs[cur_pid].ppid == -1)
+	if(ppid == -1)
 	{
 		pcbs[cur_pid].exit_code = pcbs[cur_pid].tf_p->eax;
 		pcbs[cur_pid].state = ZOMBIE;
@@ -292,12 +285,10 @@ void ExitISR()
 		cur_pid = -1;			
 		return;
 	}
-	ppid = pcbs[cur_pid].tf_p->eax;
 	pcbs[ppid].state = READY;
 	EnQ(ppid,&ready_q);
-	p = pcbs[ppid].tf_p->eax;
-	*p = pcbs[ppid].exit_code;
-	pcbs[ppid].tf_p->eax = cur_pid;
+	pcbs[ppid].tf_p->eax = pcbs[cur_pid].tf_p->eax;
 	pages[cur_pid].owner = -1;
-	EnQ(cur_pid,&ready_q);
+	EnQ(cur_pid,&avail_q);
+	cur_pid = -1;
 }

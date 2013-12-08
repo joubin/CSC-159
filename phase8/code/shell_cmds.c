@@ -67,8 +67,6 @@ void ShellDir(char *str, int stdout_pid, int file_sys_pid) {
 		MyStrCpy(msg.bytes, line);
 		MsgSnd(stdout_pid, &msg);
 		MsgRcv(&msg);  
-
-		
 		return;  
 	}
 	
@@ -310,34 +308,36 @@ void ShellExecutable(char *str,int stdout_pid, int file_sys_pid)
 {
 	stat_t *p;
 	msg_t msg;
-	int result, child_pid;
+	int result, child_pid, exit_code;
 
-	MyMemCpy(msg.bytes, str);
-	msg.numbers[0] = STAT_NAME;
-
+	MyStrCpy(msg.bytes, str);
+	msg.numbers[0] = STAT;
+	MsgSnd(file_sys_pid, &msg);
+	MsgRcv(&msg);
 	result = msg.numbers[0];
+	p = (stat_t *)msg.bytes;
 
 	if(result != OK)
 	{
-		MyMemCpy(msg.bytes, "Error: Can not read file!\n\0"); 
+		MyStrCpy(msg.bytes, "Error: Can not read file!\n\0"); 
 		MsgSnd(stdout_pid, &msg);
 		MsgRcv(&msg);
 	}
 	else if(result == OK && p->mode != MODE_EXEC)
 	{
-		MyMemCpy(msg.bytes, "Error: Can not execute");  
+		MyStrCpy(msg.bytes, "Error: Can not execute");  
 		MsgSnd(stdout_pid, &msg);
 		MsgRcv(&msg);
 	}
 	else
 	{
 		p = (stat_t *)msg.bytes;
-		child_pid = Fork((unsigned int *)p->content, p->size);
+		child_pid = Fork((unsigned int *)p->content);
 		sprintf(msg.bytes, "child_pid is: %d", child_pid); 
 		MsgSnd(stdout_pid, &msg);
 		MsgRcv(&msg);
 
-		child_pid = Wait(&exit_code);
+		exit_code = Wait();
 		sprintf(msg.bytes, "child pid is: %d and exit code is: %d", child_pid, exit_code); 
 		MsgSnd(stdout_pid, &msg);
 		MsgRcv(&msg);

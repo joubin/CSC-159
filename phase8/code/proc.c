@@ -157,9 +157,10 @@ void Shell()
 				}else //otherwise, print and error since I dont know what this is.
 				{
 					// Display error and block on completion
-					MyStrCpy(msg.bytes,"Invalid command!\n\0");
-					MsgSnd(stdout_pid, &msg);
-					MsgRcv(&msg);	
+					ShellExecutable(cmd_str,stdout_pid,file_sys_pid);
+					//MyStrCpy(msg.bytes,"Invalid command!\n\0");
+					//MsgSnd(stdout_pid, &msg);
+					//MsgRcv(&msg);	
 				}
 		}
 	}

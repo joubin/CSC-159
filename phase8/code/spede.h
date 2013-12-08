@@ -27,6 +27,8 @@
 
 #include <spede/sys/bloader.h>
 
+#include <spede/unistd.h>
+
 #endif
 
 /*  I/O port 0x80 is reserved and will never be used.  If you

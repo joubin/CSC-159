@@ -78,7 +78,7 @@ ENTRY(ForkEntry)
 
 ENTRY(WaitEntry)
 	pushl $WAIT_INTR
-	jmp EnterKerne
+	jmp EnterKernel
 
 ENTRY(ExitEntry)
 	pushl $EXIT_INTR

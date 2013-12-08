@@ -27,8 +27,8 @@
 
 // TODO should we reored this so that that it is in hex order?
 #define FORK_INTR 0x38 
-#define EXIT_INTR 0x39 
-#define WAIT_INTR 0x3A 
+#define WAIT_INTR 0x39 
+#define EXIT_INTR 0x3A 
 
 
 // ISR Entries

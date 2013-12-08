@@ -67,27 +67,27 @@ void MsgRcv(msg_t * msg) {
 			: "eax", "ebx");
 }
 
-int Fork(int *addr,int size); // *8
+int Fork(int *addr) // *8
 {
-	int pid
-	asm("movl %1, %%eax; movl %2, %%ebx; int $0x38; movl %%eax, %0"
-		:"=g"(pid)
-		:"g" ((int)p, "g"(size))
+	int pid;
+	asm("movl %1, %%eax; int $0x38; movl %%eax, %0"
+		:"=g" (pid)
+		:"g" (addr)
 		:"eax","ebx");
 	return pid;
 }
 
-int Wait(int *p); // *8
+int Wait() // *8
 {
-	int child_pid;
-	asm("movl %1, %%eax; int $0x3A; movl %%eax, %0"
-		:"=g" (child_pid)
-		:"g"((int)p)
+	int exit_code;
+	asm("int $0x3A; movl %%eax, %0"
+		:"=g" (exit_code)
+		:
 		:"eax");
-	return child_pid;
+	return exit_code;
 }
 
-void Exit(int); // *8
+void Exit(int *p) // *8
 {
 	asm("movl %0, %%eax; int $0x39"
 		:

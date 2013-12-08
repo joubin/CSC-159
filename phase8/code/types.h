@@ -22,7 +22,7 @@
 
 #define NUM_PAGE 100 // TODO might wanna do 1024 atleast? 
 
-typedef enum {AVAIL, READY, RUN, SLEEP, WAIT, ZOMBIE} state_t;
+typedef enum {AVAIL, READY, RUN, SLEEP, WAIT, WAIT_CHILD, ZOMBIE} state_t;
 
 typedef struct            // PCB describes proc image
 {
