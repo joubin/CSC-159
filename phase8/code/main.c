@@ -20,7 +20,7 @@ int print_sid;	// printing flow/control semaphore
 q_t avail_sem_q;
 mbox_t mboxes[NUM_PROC];			// Mailboxes
 page_t	pages[NUM_PAGE];   			// Pages
-sem_t sems[NUM_SEM];				// semaphores 
+sem_t sems[NUM_SEM];				// semaphores
 pcb_t pcbs[NUM_PROC];               // process table
 q_t ready_q, avail_q, sleep_q;      // processes ready to run and not used
 
@@ -167,7 +167,7 @@ void Kernel(tf_t *tf_p) // kernel directly enters here when interrupt occurs
 			break;
 		case FORK_INTR:
 			if(!EmptyQ(&avail_q))
-			{	
+			{
 				int pid = DeQ(&avail_q);
 				ForkISR(pid,(int*)pcbs[cur_pid].tf_p->eax);
 				pcbs[cur_pid].tf_p->eax=pid;
@@ -176,7 +176,7 @@ void Kernel(tf_t *tf_p) // kernel directly enters here when interrupt occurs
 			{
 				cons_printf("\nNo more available processes");
 				pcbs[cur_pid].tf_p->eax = -1;
-			}			
+			}
 			break;
 		case WAIT_INTR:
 			WaitISR();

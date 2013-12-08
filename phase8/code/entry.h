@@ -25,10 +25,9 @@
 #define SEL_KDATA 0x10    // kernel's data segment
 #define KERNAL_STACK_SIZE 8192  // kernel's stack size, in chars
 
-// TODO should we reored this so that that it is in hex order?
-#define FORK_INTR 0x38 
-#define WAIT_INTR 0x39 
-#define EXIT_INTR 0x3A 
+#define FORK_INTR 0x38
+#define WAIT_INTR 0x39
+#define EXIT_INTR 0x3A
 
 
 // ISR Entries

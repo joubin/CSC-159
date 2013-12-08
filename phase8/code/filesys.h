@@ -75,7 +75,7 @@ int Seek(int, int, int, int, int *);
 int CanAccessFd(int, int);
 int AllocFd(int);
 void FreeFd(int);
-         
+
 dir_t *FindName(char *);
 dir_t *FindNameAux(char *, dir_t *);
 

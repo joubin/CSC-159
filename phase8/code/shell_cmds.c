@@ -44,9 +44,9 @@ void ShellDir(char *str, int stdout_pid, int file_sys_pid) {
 	}
 
 
-	
+
 	MyStrCpy(msg.bytes, path); // copy whats left of the path
-	msg.numbers[0] = STAT; // set the stat 
+	msg.numbers[0] = STAT; // set the stat
 
 	MsgSnd(file_sys_pid, &msg); // add tot he message queue
 	MsgRcv(&msg); // read the return code
@@ -58,34 +58,34 @@ void ShellDir(char *str, int stdout_pid, int file_sys_pid) {
 		return;        // we can't continue
 	}
 
-	
-	p = (stat_t *)msg.bytes;    // path 
+
+	p = (stat_t *)msg.bytes;    // path
 
 	if( ! S_ISDIR(p->mode) ) // if not dir, it's a file, detail-list it
 	{
 		DirLine(p, line); // line is to be built and returned by subroutine
 		MyStrCpy(msg.bytes, line);
 		MsgSnd(stdout_pid, &msg);
-		MsgRcv(&msg);  
-		return;  
+		MsgRcv(&msg);
+		return;
 	}
-	
+
 	MyStrCpy(msg.bytes, path);
 	msg.numbers[0] = OPEN;
 	MsgSnd(file_sys_pid, &msg);
 	MsgRcv(&msg);
 	fd = msg.numbers[2];
 	while(msg.numbers[0] == OK) {
-		
+
 		msg.numbers[0] = READ;
 		msg.numbers[2] = fd;
 		MsgSnd(file_sys_pid, &msg);
 		MsgRcv(&msg);
 		p = (stat_t *)msg.bytes;
-		DirLine(p, line); 
+		DirLine(p, line);
 		if (msg.numbers[0] != OK)
 		{
-			return; // we cant go past this if the DirLine doesnt work 
+			return; // we cant go past this if the DirLine doesnt work
 		}
 		MyStrCpy(msg.bytes, line);
 		MsgSnd(stdout_pid,&msg);
@@ -98,7 +98,7 @@ void ShellDir(char *str, int stdout_pid, int file_sys_pid) {
 	MsgSnd(file_sys_pid, &msg);
 	MsgRcv(&msg);
 
-	
+
 	if (msg.numbers[0] != OK)
 	{
 		MyStrCpy(msg.bytes, "Error: Can not close!\n\0");
@@ -112,7 +112,7 @@ void ShellType(char *str, int stdout_pid, int file_sys_pid) {
 	stat_t *p;
 	msg_t msg;
 
-	
+
 	if(MyStrCmp("type\0", str))
 	{
 		path[1] = '\0'; // null-terminate
@@ -121,7 +121,7 @@ void ShellType(char *str, int stdout_pid, int file_sys_pid) {
 	else // if not the type, get the path
 	{
 		str = str + 5;
-		MyStrCpy(path, str); 
+		MyStrCpy(path, str);
 	}
 	MyStrCpy(msg.bytes, path);
 	msg.numbers[0] = STAT;
@@ -134,13 +134,13 @@ void ShellType(char *str, int stdout_pid, int file_sys_pid) {
 		MyStrCpy(msg.bytes,"Error: Can not read file!\n\0");
 		MsgSnd(stdout_pid, &msg);
 		MsgRcv(&msg);
-		return; // cant continue 
+		return; // cant continue
 	}
 
-	p = (stat_t *)msg.bytes; 
-	
-	while(msg.numbers[0] == OK) { // while it can read         
-		
+	p = (stat_t *)msg.bytes;
+
+	while(msg.numbers[0] == OK) { // while it can read
+
 		if (S_ISDIR(p->mode))
 		{
 			MyStrCpy(msg.bytes,"Error: Cant read a dir!\n\0");
@@ -174,13 +174,13 @@ void ShellType(char *str, int stdout_pid, int file_sys_pid) {
 	MsgSnd(file_sys_pid, &msg);
 	MsgRcv(&msg);
 
-	
+
 	if (msg.numbers[0] != OK)
 	{
 		MyStrCpy(msg.bytes,"Error: Can not read file!\n\0");
 		MsgSnd(stdout_pid, &msg);
 		MsgRcv(&msg);
-		return; // cant continue 
+		return; // cant continue
 	}
 }
 
@@ -205,12 +205,12 @@ void ShellHelp(int stdout_pid){
 	MsgSnd(stdout_pid,&msg);
 	MsgRcv(&msg);
 
-	MyStrCpy(print_help,  "\tdir [path]:\tlists the content of the directory.\n\ttype <filename>:\tPrints the file\n");  
+	MyStrCpy(print_help,  "\tdir [path]:\tlists the content of the directory.\n\ttype <filename>:\tPrints the file\n");
 	MyStrCpy(msg.bytes, print_help);
 	MsgSnd(stdout_pid,&msg);
 	MsgRcv(&msg);
 
-	MyStrCpy(print_help,  "\n====================Walls OS=====================\n");  
+	MyStrCpy(print_help,  "\n====================Walls OS=====================\n");
 	MyStrCpy(msg.bytes, print_help);
 	MsgSnd(stdout_pid,&msg);
 	MsgRcv(&msg);
@@ -219,7 +219,7 @@ void ShellHelp(int stdout_pid){
 
 
 void ShellWho(int stdout_pid){
-	// The who command :) 
+	// The who command :)
 	msg_t msg;
 	char dr_who[] = "Walls OS! !Windows\n\t\t all right reserved || Fall 2013\n\0";
 	MyStrCpy(msg.bytes, dr_who);
@@ -232,7 +232,7 @@ void ShellPrint(char *str, int stdout_pid, int printdriver_pid, int file_sys_pid
 	stat_t *p;
 	msg_t msg;
 
-	
+
 	if(MyStrCmp("print\0", str))
 	{
 		path[1] = '\0'; // null-terminate
@@ -241,7 +241,7 @@ void ShellPrint(char *str, int stdout_pid, int printdriver_pid, int file_sys_pid
 	else // print is 5 letters, start at the sixth
 	{
 		str = str + 6;
-		MyStrCpy(path, str); 
+		MyStrCpy(path, str);
 	}
 	MyStrCpy(msg.bytes, path);
 	msg.numbers[0] = STAT;
@@ -254,11 +254,11 @@ void ShellPrint(char *str, int stdout_pid, int printdriver_pid, int file_sys_pid
 		MyStrCpy(msg.bytes,"Error: Can not read file!\n\0");
 		MsgSnd(stdout_pid, &msg);
 		MsgRcv(&msg);
-		return; // cant continue 
+		return; // cant continue
 	}
 
-	p = (stat_t *)msg.bytes; 
-	
+	p = (stat_t *)msg.bytes;
+
 	while(msg.numbers[0] == OK) {  // while ok
 
 		if (S_ISDIR(p->mode))
@@ -293,13 +293,13 @@ void ShellPrint(char *str, int stdout_pid, int printdriver_pid, int file_sys_pid
 	MsgSnd(file_sys_pid, &msg);
 	MsgRcv(&msg);
 
-	
+
 	if (msg.numbers[0] != OK)
 	{
 		MyStrCpy(msg.bytes,"Error: Can not read file!\n\0");
 		MsgSnd(stdout_pid, &msg);
 		MsgRcv(&msg);
-		return; // cant continue 
+		return; // cant continue
 	}
 }
 
@@ -319,13 +319,13 @@ void ShellExecutable(char *str,int stdout_pid, int file_sys_pid)
 
 	if(result != OK)
 	{
-		MyStrCpy(msg.bytes, "Error: Can not read file!\n\0"); 
+		MyStrCpy(msg.bytes, "Error: Can not read file!\n\0");
 		MsgSnd(stdout_pid, &msg);
 		MsgRcv(&msg);
 	}
 	else if(result == OK && p->mode != MODE_EXEC)
 	{
-		MyStrCpy(msg.bytes, "Error: Can not execute");  
+		MyStrCpy(msg.bytes, "Error: Can not execute");
 		MsgSnd(stdout_pid, &msg);
 		MsgRcv(&msg);
 	}
@@ -333,12 +333,12 @@ void ShellExecutable(char *str,int stdout_pid, int file_sys_pid)
 	{
 		p = (stat_t *)msg.bytes;
 		child_pid = Fork((unsigned int *)p->content);
-		sprintf(msg.bytes, "child_pid is: %d", child_pid); 
+		sprintf(msg.bytes, "child_pid is: %d", child_pid);
 		MsgSnd(stdout_pid, &msg);
 		MsgRcv(&msg);
 
 		exit_code = Wait();
-		sprintf(msg.bytes, "child pid is: %d and exit code is: %d", child_pid, exit_code); 
+		sprintf(msg.bytes, "child pid is: %d and exit code is: %d", child_pid, exit_code);
 		MsgSnd(stdout_pid, &msg);
 		MsgRcv(&msg);
 	}

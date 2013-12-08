@@ -20,7 +20,7 @@
 
 #define CHAR_Q_SIZE 20
 
-#define NUM_PAGE 100 // TODO might wanna do 1024 atleast? 
+#define NUM_PAGE 100
 
 typedef enum {AVAIL, READY, RUN, SLEEP, WAIT, WAIT_CHILD, ZOMBIE} state_t;
 

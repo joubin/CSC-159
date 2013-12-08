@@ -78,7 +78,7 @@ dir_t www_dir[]=
    { 11, MODE_DIR, "..", ~0, (char *)root_dir },
    { 12, MODE_FILE, "index.html", SIZE_INDEX_HTML, (char *)content_index_html },
    { 13, MODE_FILE, "hello.html", SIZE_HELLO_HTML, (char *)content_hello_html },
-   { 0, 0, NULL, 0, NULL },          
+   { 0, 0, NULL, 0, NULL },
    { END_DIR_INODE, 0, NULL, 0, NULL }
 };
 #define NUM_WWW_DIRENTS NELEMENTS( www_dir )
@@ -149,7 +149,6 @@ void FileSys()
 
       shell_pid = msg.sender;    // shell's pid to return query results
       op_code = msg.numbers[0];  // each op_code is defined in op_codes.h
-      
       switch( op_code ) // depending on what's requested
       {
 // STAT: Shell wants to "stat" the file (name in msg.bytes),
@@ -436,7 +435,7 @@ dir_t *FindNameAux( char *name, dir_t *this_dir )
    char *p;
 
 // if name ends in '/', chances are we need to decend into the dir
-   if( ( p = strchr( name, '/' ) ) != NULL) len = p - name; 
+   if( ( p = strchr( name, '/' ) ) != NULL) len = p - name;
 
    for( ; dir_p->name; dir_p++ )
    {

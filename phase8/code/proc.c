@@ -67,7 +67,7 @@ void Shell()
 	print_driver_pid = msg.numbers[0];
 	file_sys_pid = msg.numbers[2];
 	TerminalInit(term_num);
-	
+
 	stdin_pid = Spawn(Stdin);
 	stdout_pid = Spawn(Stdout);
 
@@ -97,7 +97,7 @@ void Shell()
 			MsgSnd(stdin_pid, &msg);
 			MsgRcv(&msg);
 			MyStrCpy(passwd, msg.bytes);
-			
+
 			if (MyStrCmp(login,passwd))
 			{
 				break;
@@ -142,9 +142,9 @@ void Shell()
 				}
 				else if (MyMemCmp(cmd_str, "print", 5) == 1) // if print is typed in
 				{
-					ShellPrint(cmd_str,stdout_pid,print_driver_pid, file_sys_pid); 
+					ShellPrint(cmd_str,stdout_pid,print_driver_pid, file_sys_pid);
 					/** adding the file_sys_pid even though it wasnt in the requirments so that errors
-					* go to consol 
+					* go to console
 					**/
 				}
 				else if (MyMemCmp(cmd_str, "dir", 3) == 1) // if dir is typed in
@@ -160,7 +160,7 @@ void Shell()
 					ShellExecutable(cmd_str,stdout_pid,file_sys_pid);
 					//MyStrCpy(msg.bytes,"Invalid command!\n\0");
 					//MsgSnd(stdout_pid, &msg);
-					//MsgRcv(&msg);	
+					//MsgRcv(&msg);
 				}
 		}
 	}

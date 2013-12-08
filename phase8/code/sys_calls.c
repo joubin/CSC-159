@@ -93,4 +93,4 @@ void Exit(int *p) // *8
 		:
 		:"g"((int)p)
 		:"eax");
-}	
+}

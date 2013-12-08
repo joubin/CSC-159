@@ -164,7 +164,6 @@ void SemPostISR(int sid){
 	}
 }
 
-
 void MsgRcvISR()
 {
 	int mid = pcbs[cur_pid].tf_p ->eax;
@@ -217,19 +216,18 @@ void IRQ7ISR() {
 
 void ForkISR(int pid, int* addr)
 {
-
 	// Only thing new for ForkISR
 	int i;
 	for(i=0;i<NUM_PAGE;i++)
-	{		
+	{
 		if(pages[i].owner == -1)
 			break;
 	}
-	
-	// The rest was a copy from spwnisr. 
+
+	// The rest was a copy from spwnisr.
 	pages[i].owner = pid;
 	bzero(&pages[i], sizeof(page_t));
-	
+
 	MyBzero((void *)user_stacks[pid], USER_STACK_SIZE);
 	MyBzero(&mboxes[pid], sizeof(mbox_t));
 
@@ -238,7 +236,6 @@ void ForkISR(int pid, int* addr)
 
 	pcbs[pid].tf_p->eflags = EF_DEFAULT_VALUE|EF_INTR;
 
-	
 	pcbs[pid].tf_p->eip = (unsigned int)addr;
 	pcbs[pid].tf_p->cs = get_cs();
 	pcbs[pid].tf_p->ds = get_ds();
@@ -250,10 +247,8 @@ void ForkISR(int pid, int* addr)
 	pcbs[pid].state = READY;
 	pcbs[pid].ppid = cur_pid;
 
-	if(pid == 0) return;
-	else EnQ(pid, &ready_q); // Dont queue 0; TODO Can pid be less that 0?
+	EnQ(pid, &ready_q);
 }
-
 
 void WaitISR()
 {
@@ -272,17 +267,16 @@ void WaitISR()
 	cur_pid=-1;
 }
 
-
 void ExitISR()
-{	
+{
 	int ppid = pcbs[cur_pid].ppid;
-	
+
 	if(ppid == -1)
 	{
 		pcbs[cur_pid].exit_code = pcbs[cur_pid].tf_p->eax;
 		pcbs[cur_pid].state = ZOMBIE;
 		pages[cur_pid].owner = -1;
-		cur_pid = -1;			
+		cur_pid = -1;
 		return;
 	}
 	pcbs[ppid].state = READY;
