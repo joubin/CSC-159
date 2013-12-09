@@ -91,7 +91,7 @@ void InitData()
 
 	for(i=NUM_PAGE ; i > 0; i--)
 	{
-		pages[i].addr = (i*4096) + (int)_topHeapMemory;
+		pages[i].addr = (i*USER_STACK_SIZE) + (int)_topHeapMemory;
 		pages[i].owner = -1;
 	}
 

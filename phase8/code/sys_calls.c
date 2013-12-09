@@ -66,7 +66,7 @@ void MsgRcv(msg_t * msg) {
 			: "eax");
 }
 
-int Fork(int *addr, int size, int argument) // *8
+int Fork(int *addr, int size, int argument) 
 {
 	int pid;
 	asm("movl %1, %%eax; movl %2, %%ebx; movl %3, %%ecx; int $0x38; movl %%eax, %0"
@@ -76,7 +76,7 @@ int Fork(int *addr, int size, int argument) // *8
 	return pid;
 }
 
-int Wait() // *8
+int Wait() 
 {
 	int exit_code;
 	asm("int $0x39; movl %%eax, %0"
@@ -86,7 +86,7 @@ int Wait() // *8
 	return exit_code;
 }
 
-void Exit(int *p) // *8
+void Exit(int *p) 
 {
 	asm("movl %0, %%eax; int $0x3A"
 		:

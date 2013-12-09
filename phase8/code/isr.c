@@ -228,12 +228,12 @@ void ForkISR(int pid, int* addr, int size, int value)
 
 	// The rest was a copy from spwnisr.
 	pages[i].owner = pid;
-	MyBzero((char *)pages[i].addr, 4096);
+	MyBzero((char *)pages[i].addr, USER_STACK_SIZE);
 
 	MyBzero((void *)user_stacks[pid], USER_STACK_SIZE);
 	MyBzero(&mboxes[pid], sizeof(mbox_t));
 
-    p = (int *) (pages[i].addr + 4096);
+    p = (int *) (pages[i].addr + USER_STACK_SIZE);
     p--;
     *p = value;
 
