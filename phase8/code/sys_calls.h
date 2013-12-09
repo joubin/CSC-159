@@ -11,7 +11,7 @@ void SemWait(int);
 void SemPost(int);
 void MsgSnd(int, msg_t *);
 void MsgRcv(msg_t *);
-int Fork(int *);
+int Fork(int *, int, int);
 int Wait();
 void Exit(int);
 

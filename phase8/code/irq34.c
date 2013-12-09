@@ -70,7 +70,7 @@ void TerminalInit(int term_num) {
 //*********************************************************************
 void Stdout() {
 	msg_t msg;
-	int term_num, shell_pid;
+	int term_num, shell_pid, sender;
 
 	MsgRcv(&msg); // msg provided by Init() for this process to know:
 
@@ -79,9 +79,9 @@ void Stdout() {
 
 	while(1) { // service loop, servicing shell_pid only actually
 		MsgRcv(&msg);
-
+        sender = msg.sender;
 		StdoutString(term_num, msg.bytes); // bytes is str to display
-		MsgSnd(shell_pid, &msg);                // completion msg, content not important
+		MsgSnd(sender, &msg);                // completion msg, content not important
 	}
 }
 

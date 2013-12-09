@@ -10,8 +10,8 @@
 .global _start          # declare that _start is our main()
 
 _start:                 # instructions starts here
-    movl    $3, %eax    # 3 sec
-    int $49     # SLEEP_INTR
+    int $0x30
+    int $0x31     # SLEEP_INTR
 
     movl    $99, %eax   # exit code
-    int $58     # EXIT_INTR
+    int $0x3A     # EXIT_INTR

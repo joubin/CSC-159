@@ -58,14 +58,20 @@ extern dir_t root_dir[];                   // (Declare in advance.)
 
 char content_nap[]= {
 	#include "Build/nap.out.hex"
+
+};
+char content_hello[]={
+    #include "Build/hello.out.hex"
 };
 #define SIZE_NAP_OUT (sizeof(content_nap))
+#define SIZE_HELLO_OUT (sizeof(content_hello))
 
 dir_t bin_dir[]=
 {
 	{ 20, MODE_DIR, ".", ~0, (char *)bin_dir },   // current dir
 	{ 21, MODE_DIR, "..", ~0, (char *)root_dir }, // parent dir, forward declared
 	{ 22, MODE_EXEC, "nap.out", SIZE_NAP_OUT, content_nap },
+	{ 22, MODE_EXEC, "hello.out", SIZE_HELLO_OUT, content_hello },
 	{ 0, 0, NULL, 0, NULL },                      // no entries in dir
 	{ END_DIR_INODE, 0, NULL, 0, NULL }           // end of bin_dir[]
 };

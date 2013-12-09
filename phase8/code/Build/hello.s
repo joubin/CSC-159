@@ -24,6 +24,8 @@ msg:            # 1st is our local msg_t msg
 .global _start      # declare that _start is our main()
 _start:             # instructions starts here
 
+   popl %eax
+
 # calc my msg addr and save copies to pop later when MsgSnd/MsgRcv
    pushl %esp       # esp is 4KB from beginning
    popl %edx        # pop it into edx to subtract
@@ -36,14 +38,13 @@ _start:             # instructions starts here
    pushl %ecx       # save another copy
 
 # stdout PID is hard-coded, need to check with its Spawn order
-   movl $6, %eax    # mboxes ID (mid) is stdout
    popl %ebx        # actual addr of msg (14M+)
-   int  $54     # MSGSND_INTR
+   int  $0x36     # MSGSND_INTR
 
 # Stdout in irq34.c needs to reply this proc (use msg.sender)
    popl %eax        # actual addr of msg (14M+)
-   int  $55     # MSGRCV_INTR
+   int  $0x37     # MSGRCV_INTR
 
 # exit with msg addr
    popl %eax        # exit code, can print with %x (in hex)
-   int  $58     # EXIT_INTR
+   int  $0x3A     # EXIT_INTR

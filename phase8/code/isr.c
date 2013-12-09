@@ -166,8 +166,8 @@ void SemPostISR(int sid){
 
 void MsgRcvISR()
 {
-	int mid = pcbs[cur_pid].tf_p ->eax;
-	msg_t *source, *destination = (msg_t *)pcbs[cur_pid].tf_p->ebx;
+	int mid = cur_pid;
+	msg_t *source, *destination = (msg_t *)pcbs[cur_pid].tf_p->eax;
 
 	if(!MsgQEmpty(&mboxes[mid].msg_q))
 	{
@@ -190,13 +190,16 @@ void MsgSndISR()
 	mid = pcbs[cur_pid].tf_p ->eax;
 	source = (msg_t*)pcbs[cur_pid].tf_p -> ebx;
 
+    source->sender = cur_pid;
+    source->send_tick = sys_tick;
+
 	if(!EmptyQ(&mboxes[mid].wait_q))
 	{
 		pid = DeQ(&mboxes[mid].wait_q);
 		EnQ(pid,&ready_q);
 		pcbs[pid].state = READY;
 
-		destination = (msg_t *)pcbs[pid].tf_p -> ebx;
+		destination = (msg_t *)pcbs[pid].tf_p -> eax;
 		MyMemCpy((char*)destination,(char*)source,sizeof(msg_t));
 	}
 	else
@@ -205,8 +208,6 @@ void MsgSndISR()
 		head = mboxes[mid].msg_q.head;
 		destination = &mboxes[mid].msg_q.msgs[head];
 	}
-	destination->sender = cur_pid;
-	destination->send_tick = sys_tick;
 }
 
 void IRQ7ISR() {
@@ -214,10 +215,11 @@ void IRQ7ISR() {
    outportb(0x20, 0x67);  // 0x20 is PIC control, 0x67 dismisses IRQ 7
 }
 
-void ForkISR(int pid, int* addr)
+void ForkISR(int pid, int* addr, int size, int value)
 {
 	// Only thing new for ForkISR
 	int i;
+    int * p;
 	for(i=0;i<NUM_PAGE;i++)
 	{
 		if(pages[i].owner == -1)
@@ -226,17 +228,23 @@ void ForkISR(int pid, int* addr)
 
 	// The rest was a copy from spwnisr.
 	pages[i].owner = pid;
-	bzero(&pages[i], sizeof(page_t));
+	MyBzero((char *)pages[i].addr, 4096);
 
 	MyBzero((void *)user_stacks[pid], USER_STACK_SIZE);
 	MyBzero(&mboxes[pid], sizeof(mbox_t));
 
-	pcbs[pid].tf_p = (tf_t *)&pages[i+1].addr;
+    p = (int *) (pages[i].addr + 4096);
+    p--;
+    *p = value;
+
+	pcbs[pid].tf_p = (tf_t*) p;
 	pcbs[pid].tf_p--;    // points to trap frame
+
+    MyMemCpy((char *)(pages[i].addr), (char *)(addr), size);
 
 	pcbs[pid].tf_p->eflags = EF_DEFAULT_VALUE|EF_INTR;
 
-	pcbs[pid].tf_p->eip = (unsigned int)addr;
+	pcbs[pid].tf_p->eip = pages[i].addr;
 	pcbs[pid].tf_p->cs = get_cs();
 	pcbs[pid].tf_p->ds = get_ds();
 	pcbs[pid].tf_p->es = get_es();

@@ -332,13 +332,13 @@ void ShellExecutable(char *str,int stdout_pid, int file_sys_pid)
 	else
 	{
 		p = (stat_t *)msg.bytes;
-		child_pid = Fork((unsigned int *)p->content);
-		sprintf(msg.bytes, "child_pid is: %d", child_pid);
+		child_pid = Fork((unsigned int *)p->content,p->size,stdout_pid);
+		sprintf(msg.bytes, "child_pid is: %d\n", child_pid);
 		MsgSnd(stdout_pid, &msg);
 		MsgRcv(&msg);
 
 		exit_code = Wait();
-		sprintf(msg.bytes, "child pid is: %d and exit code is: %d", child_pid, exit_code);
+		sprintf(msg.bytes, "child pid is: %d and exit code is: %d\n", child_pid, exit_code);
 		MsgSnd(stdout_pid, &msg);
 		MsgRcv(&msg);
 	}

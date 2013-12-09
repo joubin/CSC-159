@@ -60,27 +60,26 @@ void MsgSnd(int mid, msg_t * msg) {
 			: "eax", "ebx");
 }
 void MsgRcv(msg_t * msg) {
-	int mid = GetPid();
-	asm("movl %0, %%eax; movl %1, %%ebx; int $0x37"
+	asm("movl %0, %%eax; int $0x37"
 			:
-			: "g" (mid), "g" (msg)
-			: "eax", "ebx");
+			: "g" (msg)
+			: "eax");
 }
 
-int Fork(int *addr) // *8
+int Fork(int *addr, int size, int argument) // *8
 {
 	int pid;
-	asm("movl %1, %%eax; int $0x38; movl %%eax, %0"
+	asm("movl %1, %%eax; movl %2, %%ebx; movl %3, %%ecx; int $0x38; movl %%eax, %0"
 		:"=g" (pid)
-		:"g" (addr)
-		:"eax","ebx");
+		:"g" (addr), "g" (size), "g" (argument)
+		:"eax","ebx","ecx");
 	return pid;
 }
 
 int Wait() // *8
 {
 	int exit_code;
-	asm("int $0x3A; movl %%eax, %0"
+	asm("int $0x39; movl %%eax, %0"
 		:"=g" (exit_code)
 		:
 		:"eax");
@@ -89,7 +88,7 @@ int Wait() // *8
 
 void Exit(int *p) // *8
 {
-	asm("movl %0, %%eax; int $0x39"
+	asm("movl %0, %%eax; int $0x3A"
 		:
 		:"g"((int)p)
 		:"eax");

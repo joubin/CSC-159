@@ -169,7 +169,7 @@ void Kernel(tf_t *tf_p) // kernel directly enters here when interrupt occurs
 			if(!EmptyQ(&avail_q))
 			{
 				int pid = DeQ(&avail_q);
-				ForkISR(pid,(int*)pcbs[cur_pid].tf_p->eax);
+				ForkISR(pid,(int*)pcbs[cur_pid].tf_p->eax,pcbs[cur_pid].tf_p->ebx,pcbs[cur_pid].tf_p->ecx);
 				pcbs[cur_pid].tf_p->eax=pid;
 			}
 			else
