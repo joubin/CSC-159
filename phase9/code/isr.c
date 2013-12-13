@@ -226,6 +226,12 @@ void ForkISR(int pid, int* addr, int size, int value)
 			break;
 	}
 
+	for(i=0;i<NUM_PAGE;i++)
+	{
+			MyBzero((char *)pages[i].addr, USER_STACK_SIZE); // clear ram pages
+			
+	}
+
 	// The rest was a copy from spwnisr.
 	pages[i].owner = pid;
 	MyBzero((char *)pages[i].addr, USER_STACK_SIZE);
