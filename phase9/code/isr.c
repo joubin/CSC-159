@@ -35,6 +35,7 @@ void SpawnISR(int pid, func_ptr_t addr)
 
 	pcbs[pid].tick_count = pcbs[pid].total_tick_count = 0;
 	pcbs[pid].state = READY;
+   	pcbs[pid].cr3 = kernel_cr3;
 
 	if(pid != 0) EnQ(pid, &ready_q);  // IdleProc (PID 0) is not queued
 }
@@ -168,11 +169,16 @@ void MsgRcvISR()
 {
 	int mid = cur_pid;
 	msg_t *source, *destination = (msg_t *)pcbs[cur_pid].tf_p->eax;
-
+	int tmp
 	if(!MsgQEmpty(&mboxes[mid].msg_q))
 	{
 		source = DeQMsg(&mboxes[mid].msg_q);
 		MyMemCpy((char*)destination,(char*)source,sizeof(msg_t));
+		tmp = DeQ( &(mboxes[mid].wait_q));
+
+		set_cr3(pcbs[tmp].cr3);
+		memcpy((msg_t*)pcbs[tmp].tf_p->eax, &tmp_msg, sizeof(msg_t));
+	    set_cr3(pcbs[mid].cr3);
 	}
 	else
 	{
@@ -220,26 +226,71 @@ void ForkISR(int pid, int* addr, int size, int value)
 	// Only thing new for ForkISR
 	int i;
     int * p;
-	for(i=0;i<NUM_PAGE;i++)
+    int rampPages[5];
+    unsigned index;
+    int j = 0;
+	for(i=0;i<NUM_PAGE;i++,j++) //TODO <-- Can I add both I and J like that?
 	{
 		if(pages[i].owner == -1)
-			break;
+			{
+				rampPages[j] = i;
+				if (j >= 5)
+				{
+					break;
+				}
+			}
 	}
 
-	for(i=0;i<NUM_PAGE;i++)
-	{
-			MyBzero((char *)pages[i].addr, USER_STACK_SIZE); // clear ram pages
-			
+	// check ram pages
+	if (j != 5)
+	{	
+		pcbs[cur_pid].tf_p->eax = NOT_OK;
+		return;
 	}
-
+	int pidToCheck = DeQ(&avail_q);
+	if (pidToCheck == NOT_OK)
+	{	
+		pcbs[cur_pid].tf_p->eax = NOT_OK;
+		return;
+	}
 	// The rest was a copy from spwnisr.
-	pages[i].owner = pid;
-	MyBzero((char *)pages[i].addr, USER_STACK_SIZE);
+	// pages[i].owner = pid;
+	// MyBzero((char *)VSTART, USER_STACK_SIZE);
 
-	MyBzero((void *)user_stacks[pid], USER_STACK_SIZE);
-	MyBzero(&mboxes[pid], sizeof(mbox_t));
+	// MyBzero((void *)user_stacks[pid], USER_STACK_SIZE);
+	// MyBzero(&mboxes[pid], sizeof(mbox_t));
+	for (int i = 0; i < j; ++i)
+	{
+		pages[rampPages[i]].owner = pidToCheck;
+		MyBzero((void*)pages[rampPages[i]].addr, USER_STACK_SIZE);
+	}
 
-    p = (int *) (pages[i].addr + USER_STACK_SIZE);
+
+	// Main Table (MT): entries to look for subtables.
+	// Code Table (CT): entries to look for code pages.
+	// Stack Table (ST): entries to look for stack pages.
+	// Code Page (CP): executable code.
+	// Stack Page (SP): runtime stack, initially a trapframe.
+
+
+	p = (int*)pages[rampPages[0]].addr;
+	MyMemCpy((void*)p, (void*)kernel_cr3);	// first 16*3 from kernel pd
+	index = (unsigned int)VSTART >> 22;		//  first 10 bits of cp
+	*(p + index) = pages[rampPages[1]].addr + 3;		// ct to pd
+	index = (unsigned int)(VEND - sizeof(int) - sizeof(tf_t)) >> 22;	
+	*(p + index) = pages[rampPages[2]].addr + 3;		// put st address into pd
+	
+	p = (int*)pages[rampPages[1]].addr;
+	index = (unsigned int)( VSTART & 0x003FFFFF ) >> 12;	// grab the first 10 bits of virtual memory
+	*(p + index) = pages[rampPages[3]].addr + 3;		
+	
+	p = (int*)pages[rampPages[2]].addr;
+	index = (unsigned int)( (VEND - sizeof(int) - sizeof(tf_t)) & 0x003FFFFF ) >> 12;	//second 10 bits of CT
+	*(p + index) = pages[rampPages[4]].addr + 3;		// sp == st
+	
+	MyMemCpy((void*)pages[rampPages[3]].addr, *addr);
+
+    p = (int *) (VSTART + USER_STACK_SIZE);
     p--;
     *p = value;
 
@@ -250,17 +301,18 @@ void ForkISR(int pid, int* addr, int size, int value)
 
 	pcbs[pid].tf_p->eflags = EF_DEFAULT_VALUE|EF_INTR;
 
-	pcbs[pid].tf_p->eip = pages[i].addr;
+	pcbs[pid].tf_p->eip = VSTART;
 	pcbs[pid].tf_p->cs = get_cs();
 	pcbs[pid].tf_p->ds = get_ds();
 	pcbs[pid].tf_p->es = get_es();
 	pcbs[pid].tf_p->fs = get_fs();
 	pcbs[pid].tf_p->gs = get_gs();
+	pcbs[pid].tf_p = (tf_t*)(VEND - sizeof(int) - sizeof(tf_t));
 
 	pcbs[pid].tick_count = pcbs[pid].total_tick_count = 0;
 	pcbs[pid].state = READY;
 	pcbs[pid].ppid = cur_pid;
-
+	pcbs[pid].cr3 = pages[rampPages[0]].addr;
 	EnQ(pid, &ready_q);
 }
 
