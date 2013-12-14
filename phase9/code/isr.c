@@ -165,19 +165,18 @@ void SemPostISR(int sid){
 	}
 }
 
-void MsgRcvISR()
+void MsgRcvISR() // something is wrong here or in the send 
 {
 	int mid = cur_pid;
 	msg_t *source, *destination = (msg_t *)pcbs[cur_pid].tf_p->eax;
-	int tmp;
 	if(!MsgQEmpty(&mboxes[mid].msg_q))
 	{
 		source = DeQMsg(&mboxes[mid].msg_q);
 		memcpy((char*)destination,(char*)source,sizeof(msg_t));
-		tmp = DeQ( &(mboxes[mid].wait_q));
+		
 
-		set_cr3(pcbs[tmp].MT);
-		memcpy((msg_t*)pcbs[tmp].tf_p->eax, source, sizeof(msg_t));
+		set_cr3(pcbs[mid].MT);
+		memcpy((msg_t*)pcbs[mid].tf_p->eax, source, sizeof(msg_t));
 	    set_cr3(pcbs[mid].MT);
 	}
 	else
@@ -188,7 +187,7 @@ void MsgRcvISR()
 	}
 }
 
-void MsgSndISR()
+void MsgSndISR() // something wrong here or in the recive 
 {
 	int mid,pid,head;
 	msg_t *source, *destination;
@@ -276,14 +275,14 @@ void ForkISR(int pid, int* addr, int size, int value)
 
 
 	p = (int*)pages[ramPages[0]].addr;
-	memcpy((void*)p, (void*)OS_MT, 48);	// first 16*3 from kernel pd
+	memcpy((void*)p, (void*)OS_MT, 12*3);	// first 16*3 from kernel pd
 	index = (unsigned int)VSTART >> 22;		//  first 10 bits of cp
 	*(p + index) = pages[ramPages[1]].addr + 3;		// ct to pd
-	index = (unsigned int)(VEND - sizeof(int) - sizeof(tf_t)) >> 22;	
+	index = (unsigned int)(VEND - sizeof(int) - sizeof(tf_t)) >> 10;	
 	*(p + index) = pages[ramPages[2]].addr + 3;		// put st address into pd
 	
 	p = (int*)pages[ramPages[1]].addr;
-	index = (unsigned int)( VSTART & 0x9FFFFFC0 ) >> 12;	// grab the first 10 bits of virtual memory
+	index = (unsigned int)( VSTART & 0x9FFFFFC0 ) >> 10;	// grab the first 10 bits of virtual memory
 	*(p + index) = pages[ramPages[3]].addr + 3;		
 	
 	p = (int*)pages[ramPages[2]].addr;
