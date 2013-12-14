@@ -76,6 +76,7 @@ void InitControl()
 void InitData()
 {
 	int i;
+	kernel_cr3 = get_cr3();
 
 	// queue initializations, both queues are empty first
 	InitQ(&avail_q);
