@@ -3,8 +3,7 @@
 
 #ifndef _TRAP_H_
 #define _TRAP_H_
-#define VSTART 0x80000000 // code starts at 2G <== was in tips.hml
-#define VEND 0xA0000000 // stack ends at 2.5G-1  <== was in tips.hml
+
 #ifndef ASSEMBLER
 
 // This structure corresponds to the state of user registers

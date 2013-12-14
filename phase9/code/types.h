@@ -20,7 +20,7 @@
 
 #define CHAR_Q_SIZE 20
 
-#define NUM_PAGE 5// user to be 100
+#define NUM_PAGE 100// user to be 100
 #define VSTART 0x80000000 // code starts at 2G
 #define VEND 0xA0000000 // stack ends at 2.5G-1
 typedef enum {AVAIL, READY, RUN, SLEEP, WAIT, WAIT_CHILD, ZOMBIE} state_t;
@@ -30,7 +30,7 @@ typedef struct            // PCB describes proc image
 	state_t state;         // state of process
 	int tick_count,        // accumulative run time since dispatched
 	    total_tick_count,
-	    wake_tick, ppid, exit_code, cr3;  // accumulative run time since creation
+	    wake_tick, ppid, exit_code, MT;  // accumulative run time since creation
 	    // mt is memory translation.
 
 	tf_t *tf_p;            // process register context

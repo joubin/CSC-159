@@ -18,6 +18,6 @@ extern mbox_t mboxes[NUM_PROC];            // Mailboxes
 extern int print_sid;
 
 extern page_t pages[NUM_PAGE];
-extern int kernel_cr3;
+extern int OS_MT;
 
 #endif

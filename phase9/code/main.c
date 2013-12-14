@@ -24,7 +24,6 @@ sem_t sems[NUM_SEM];				// semaphores
 pcb_t pcbs[NUM_PROC];               // process table
 q_t ready_q, avail_q, sleep_q;      // processes ready to run and not used
 int OS_MT;
-int kernel_cr3;
 
 void SetIDTEntry(int entry_num, func_ptr_t entry_addr){
 	struct i386_gate *gateptr = &idt_table[entry_num];
@@ -75,7 +74,7 @@ void InitControl()
 void InitData()
 {
 	int i;
-	kernel_cr3 = get_cr3();
+	OS_MT = get_cr3();
 
 	// queue initializations, both queues are empty first
 	InitQ(&avail_q);
@@ -192,6 +191,6 @@ void Kernel(tf_t *tf_p) // kernel directly enters here when interrupt occurs
 }
 
 	Scheduler();                // select a process to run
-	set_cr3(pcbs[cur_pid].cr3);
+	set_cr3(pcbs[cur_pid].MT);
 	Loader(pcbs[cur_pid].tf_p); // run the process selected
 }

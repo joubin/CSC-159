@@ -35,7 +35,7 @@ void SpawnISR(int pid, func_ptr_t addr)
 
 	pcbs[pid].tick_count = pcbs[pid].total_tick_count = 0;
 	pcbs[pid].state = READY;
-   	pcbs[pid].cr3 = kernel_cr3;
+   	pcbs[pid].MT = OS_MT;
 
 	if(pid != 0) EnQ(pid, &ready_q);  // IdleProc (PID 0) is not queued
 }
@@ -176,9 +176,9 @@ void MsgRcvISR()
 		memcpy((char*)destination,(char*)source,sizeof(msg_t));
 		tmp = DeQ( &(mboxes[mid].wait_q));
 
-		set_cr3(pcbs[tmp].cr3);
+		set_cr3(pcbs[tmp].MT);
 		memcpy((msg_t*)pcbs[tmp].tf_p->eax, source, sizeof(msg_t));
-	    set_cr3(pcbs[mid].cr3);
+	    set_cr3(pcbs[mid].MT);
 	}
 	else
 	{
@@ -235,20 +235,21 @@ void ForkISR(int pid, int* addr, int size, int value)
 		if(pages[i].owner == -1)
 			{
 				ramPages[j++] = i;
-				if (j >= 5)
+				if (j == 5)
 				{
 					break;
 				}
 			}
 	}
-	t_pid = DeQ(&avail_q);
+	
 	// check ram pages
 	if (j != 5)
 	{	
 		pcbs[cur_pid].tf_p->eax = -1; // TODO should be NOT_OK from opcodes
 		return;
 	}
-	pcbs[cur_pid].tf_p->eax = t_pid;
+	t_pid = DeQ(&avail_q);
+
 	if (t_pid == -1)
 	{	
 		pcbs[cur_pid].tf_p->eax = -1;
@@ -275,18 +276,18 @@ void ForkISR(int pid, int* addr, int size, int value)
 
 
 	p = (int*)pages[ramPages[0]].addr;
-	memcpy((void*)p, (void*)kernel_cr3, 48);	// first 16*3 from kernel pd
+	memcpy((void*)p, (void*)OS_MT, 48);	// first 16*3 from kernel pd
 	index = (unsigned int)VSTART >> 22;		//  first 10 bits of cp
 	*(p + index) = pages[ramPages[1]].addr + 3;		// ct to pd
 	index = (unsigned int)(VEND - sizeof(int) - sizeof(tf_t)) >> 22;	
 	*(p + index) = pages[ramPages[2]].addr + 3;		// put st address into pd
 	
 	p = (int*)pages[ramPages[1]].addr;
-	index = (unsigned int)( VSTART & 0x003FFFFF ) >> 12;	// grab the first 10 bits of virtual memory
+	index = (unsigned int)( VSTART & 0x9FFFFFC0 ) >> 12;	// grab the first 10 bits of virtual memory
 	*(p + index) = pages[ramPages[3]].addr + 3;		
 	
 	p = (int*)pages[ramPages[2]].addr;
-	index = (unsigned int)( (VEND - sizeof(int) - sizeof(tf_t)) & 0x003FFFFF ) >> 12;	//second 10 bits of CT
+	index = (unsigned int)( (VEND - sizeof(int) - sizeof(tf_t)) & 0x9FFFFFC0 ) >> 12;	//second 10 bits of CT
 	*(p + index) = pages[ramPages[4]].addr + 3;		// sp == st
 	
 	memcpy((void*)pages[ramPages[3]].addr, addr, size);
@@ -313,7 +314,7 @@ void ForkISR(int pid, int* addr, int size, int value)
 	pcbs[pid].tick_count = pcbs[pid].total_tick_count = 0;
 	pcbs[pid].state = READY;
 	pcbs[pid].ppid = cur_pid;
-	pcbs[pid].cr3 = pages[ramPages[0]].addr;
+	pcbs[pid].MT = pages[ramPages[0]].addr;
 	EnQ(pid, &ready_q);
 }
 
