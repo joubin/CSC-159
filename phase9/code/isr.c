@@ -169,15 +169,15 @@ void MsgRcvISR()
 {
 	int mid = cur_pid;
 	msg_t *source, *destination = (msg_t *)pcbs[cur_pid].tf_p->eax;
-	int tmp
+	int tmp;
 	if(!MsgQEmpty(&mboxes[mid].msg_q))
 	{
 		source = DeQMsg(&mboxes[mid].msg_q);
-		MyMemCpy((char*)destination,(char*)source,sizeof(msg_t));
+		memcpy((char*)destination,(char*)source,sizeof(msg_t));
 		tmp = DeQ( &(mboxes[mid].wait_q));
 
 		set_cr3(pcbs[tmp].cr3);
-		memcpy((msg_t*)pcbs[tmp].tf_p->eax, &tmp_msg, sizeof(msg_t));
+		memcpy((msg_t*)pcbs[tmp].tf_p->eax, source, sizeof(msg_t));
 	    set_cr3(pcbs[mid].cr3);
 	}
 	else
@@ -224,33 +224,34 @@ void IRQ7ISR() {
 void ForkISR(int pid, int* addr, int size, int value)
 {
 	// Only thing new for ForkISR
-	int i;
+	int i, t_pid;
     int * p;
     int ramPages[5];
     unsigned index;
     int j = 0;
-	for(i=0;i<NUM_PAGE;i++,j++) //TODO <-- Can I add both I and J like that?
+    t_pid = -1;
+	for(i=0;i<NUM_PAGE;i++) //TODO <-- Can I add both I and J like that?
 	{
 		if(pages[i].owner == -1)
 			{
-				ramPages[j] = i;
+				ramPages[j++] = i;
 				if (j >= 5)
 				{
 					break;
 				}
 			}
 	}
-
+	t_pid = DeQ(&avail_q);
 	// check ram pages
 	if (j != 5)
 	{	
-		pcbs[cur_pid].tf_p->eax = NOT_OK;
+		pcbs[cur_pid].tf_p->eax = -1; // TODO should be NOT_OK from opcodes
 		return;
 	}
-	int pidToCheck = DeQ(&avail_q);
-	if (pidToCheck == NOT_OK)
+	pcbs[cur_pid].tf_p->eax = t_pid;
+	if (t_pid == -1)
 	{	
-		pcbs[cur_pid].tf_p->eax = NOT_OK;
+		pcbs[cur_pid].tf_p->eax = -1;
 		return;
 	}
 	// The rest was a copy from spwnisr.
@@ -259,9 +260,9 @@ void ForkISR(int pid, int* addr, int size, int value)
 
 	// MyBzero((void *)user_stacks[pid], USER_STACK_SIZE);
 	// MyBzero(&mboxes[pid], sizeof(mbox_t));
-	for (int i = 0; i < j; ++i)
+	for (i = 0; i < j; ++i)
 	{
-		pages[ramPages[i]].owner = pidToCheck;
+		pages[ramPages[i]].owner = t_pid;
 		MyBzero((void*)pages[ramPages[i]].addr, USER_STACK_SIZE);
 	}
 
@@ -274,7 +275,7 @@ void ForkISR(int pid, int* addr, int size, int value)
 
 
 	p = (int*)pages[ramPages[0]].addr;
-	MyMemCpy((void*)p, (void*)kernel_cr3);	// first 16*3 from kernel pd
+	memcpy((void*)p, (void*)kernel_cr3, 48);	// first 16*3 from kernel pd
 	index = (unsigned int)VSTART >> 22;		//  first 10 bits of cp
 	*(p + index) = pages[ramPages[1]].addr + 3;		// ct to pd
 	index = (unsigned int)(VEND - sizeof(int) - sizeof(tf_t)) >> 22;	
@@ -288,7 +289,7 @@ void ForkISR(int pid, int* addr, int size, int value)
 	index = (unsigned int)( (VEND - sizeof(int) - sizeof(tf_t)) & 0x003FFFFF ) >> 12;	//second 10 bits of CT
 	*(p + index) = pages[ramPages[4]].addr + 3;		// sp == st
 	
-	MyMemCpy((void*)pages[ramPages[3]].addr, *addr);
+	memcpy((void*)pages[ramPages[3]].addr, *addr, size);
 
     p = (int *) (VSTART + USER_STACK_SIZE);
     p--;
@@ -297,7 +298,7 @@ void ForkISR(int pid, int* addr, int size, int value)
 	pcbs[pid].tf_p = (tf_t*) p;
 	pcbs[pid].tf_p--;    // points to trap frame
 
-    MyMemCpy((char *)(pages[i].addr), (char *)(addr), size);
+    memcpy((char *)(pages[i].addr), (char *)(addr), size);
 
 	pcbs[pid].tf_p->eflags = EF_DEFAULT_VALUE|EF_INTR;
 

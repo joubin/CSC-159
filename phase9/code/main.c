@@ -42,7 +42,6 @@ void main()
 
 	cur_pid = 0;
 	// TODO set_c is neded here based on tips. 
-	pcbs[cur_pid].mt = set_cr3();
 
 
 	Loader(pcbs[0].tf_p);
