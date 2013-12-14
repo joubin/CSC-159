@@ -289,7 +289,7 @@ void ForkISR(int pid, int* addr, int size, int value)
 	index = (unsigned int)( (VEND - sizeof(int) - sizeof(tf_t)) & 0x003FFFFF ) >> 12;	//second 10 bits of CT
 	*(p + index) = pages[ramPages[4]].addr + 3;		// sp == st
 	
-	memcpy((void*)pages[ramPages[3]].addr, *addr, size);
+	memcpy((void*)pages[ramPages[3]].addr, addr, size);
 
     p = (int *) (VSTART + USER_STACK_SIZE);
     p--;
