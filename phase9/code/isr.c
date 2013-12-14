@@ -267,27 +267,27 @@ void ForkISR(int pid, int* addr, int size, int value)
 	}
 
 
-	// Main Table (MT): entries to look for subtables.
-	// Code Table (CT): entries to look for code pages.
-	// Stack Table (ST): entries to look for stack pages.
-	// Code Page (CP): executable code.
-	// Stack Page (SP): runtime stack, initially a trapframe.
+	//1 Main Table (MT): entries to look for subtables.
+	//2 Code Table (CT): entries to look for code pages.
+	//3 Stack Table (ST): entries to look for stack pages.
+	//4 Code Page (CP): executable code.
+	//5 Stack Page (SP): runtime stack, initially a trapframe.
 
 
 	p = (int*)pages[ramPages[0]].addr;
-	memcpy((void*)p, (void*)OS_MT, 12*3);	// first 16*3 from kernel pd
+	memcpy((void*)p, (void*)OS_MT, 16*4);	// first 16*3 from kernel pd
 	index = (unsigned int)VSTART >> 22;		//  first 10 bits of cp
 	*(p + index) = pages[ramPages[1]].addr + 3;		// ct to pd
 	index = (unsigned int)(VEND - sizeof(int) - sizeof(tf_t)) >> 10;	
-	*(p + index) = pages[ramPages[2]].addr + 3;		// put st address into pd
+	*(p + index) = pages[ramPages[2]].addr + 3 ;		// put st address into pd
 	
 	p = (int*)pages[ramPages[1]].addr;
 	index = (unsigned int)( VSTART & 0x9FFFFFC0 ) >> 10;	// grab the first 10 bits of virtual memory
-	*(p + index) = pages[ramPages[3]].addr + 3;		
+	*(p + index) = pages[ramPages[3]].addr ;		
 	
 	p = (int*)pages[ramPages[2]].addr;
 	index = (unsigned int)( (VEND - sizeof(int) - sizeof(tf_t)) & 0x9FFFFFC0 ) >> 12;	//second 10 bits of CT
-	*(p + index) = pages[ramPages[4]].addr + 3;		// sp == st
+	*(p + index) = pages[ramPages[4]].addr;		// sp == st
 	
 	memcpy((void*)pages[ramPages[3]].addr, addr, size);
 
