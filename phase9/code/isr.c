@@ -226,14 +226,14 @@ void ForkISR(int pid, int* addr, int size, int value)
 	// Only thing new for ForkISR
 	int i;
     int * p;
-    int rampPages[5];
+    int ramPages[5];
     unsigned index;
     int j = 0;
 	for(i=0;i<NUM_PAGE;i++,j++) //TODO <-- Can I add both I and J like that?
 	{
 		if(pages[i].owner == -1)
 			{
-				rampPages[j] = i;
+				ramPages[j] = i;
 				if (j >= 5)
 				{
 					break;
@@ -261,8 +261,8 @@ void ForkISR(int pid, int* addr, int size, int value)
 	// MyBzero(&mboxes[pid], sizeof(mbox_t));
 	for (int i = 0; i < j; ++i)
 	{
-		pages[rampPages[i]].owner = pidToCheck;
-		MyBzero((void*)pages[rampPages[i]].addr, USER_STACK_SIZE);
+		pages[ramPages[i]].owner = pidToCheck;
+		MyBzero((void*)pages[ramPages[i]].addr, USER_STACK_SIZE);
 	}
 
 
@@ -273,22 +273,22 @@ void ForkISR(int pid, int* addr, int size, int value)
 	// Stack Page (SP): runtime stack, initially a trapframe.
 
 
-	p = (int*)pages[rampPages[0]].addr;
+	p = (int*)pages[ramPages[0]].addr;
 	MyMemCpy((void*)p, (void*)kernel_cr3);	// first 16*3 from kernel pd
 	index = (unsigned int)VSTART >> 22;		//  first 10 bits of cp
-	*(p + index) = pages[rampPages[1]].addr + 3;		// ct to pd
+	*(p + index) = pages[ramPages[1]].addr + 3;		// ct to pd
 	index = (unsigned int)(VEND - sizeof(int) - sizeof(tf_t)) >> 22;	
-	*(p + index) = pages[rampPages[2]].addr + 3;		// put st address into pd
+	*(p + index) = pages[ramPages[2]].addr + 3;		// put st address into pd
 	
-	p = (int*)pages[rampPages[1]].addr;
+	p = (int*)pages[ramPages[1]].addr;
 	index = (unsigned int)( VSTART & 0x003FFFFF ) >> 12;	// grab the first 10 bits of virtual memory
-	*(p + index) = pages[rampPages[3]].addr + 3;		
+	*(p + index) = pages[ramPages[3]].addr + 3;		
 	
-	p = (int*)pages[rampPages[2]].addr;
+	p = (int*)pages[ramPages[2]].addr;
 	index = (unsigned int)( (VEND - sizeof(int) - sizeof(tf_t)) & 0x003FFFFF ) >> 12;	//second 10 bits of CT
-	*(p + index) = pages[rampPages[4]].addr + 3;		// sp == st
+	*(p + index) = pages[ramPages[4]].addr + 3;		// sp == st
 	
-	MyMemCpy((void*)pages[rampPages[3]].addr, *addr);
+	MyMemCpy((void*)pages[ramPages[3]].addr, *addr);
 
     p = (int *) (VSTART + USER_STACK_SIZE);
     p--;
@@ -312,7 +312,7 @@ void ForkISR(int pid, int* addr, int size, int value)
 	pcbs[pid].tick_count = pcbs[pid].total_tick_count = 0;
 	pcbs[pid].state = READY;
 	pcbs[pid].ppid = cur_pid;
-	pcbs[pid].cr3 = pages[rampPages[0]].addr;
+	pcbs[pid].cr3 = pages[ramPages[0]].addr;
 	EnQ(pid, &ready_q);
 }
 
