@@ -173,8 +173,8 @@ void Kernel(tf_t *tf_p) // kernel directly enters here when interrupt occurs
 			if(!EmptyQ(&avail_q))
 			{
 				int pid = DeQ(&avail_q);
-				ForkISR(pid,(int*)pcbs[cur_pid].tf_p->eax,pcbs[cur_pid].tf_p->ebx,pcbs[cur_pid].tf_p->ecx);
-				pcbs[cur_pid].tf_p->eax=pid;
+				ForkISR(pid, (int *)pcbs[cur_pid].tf_p->eax, pcbs[cur_pid].tf_p->ebx, pcbs[cur_pid].tf_p->ecx);
+				pcbs[cur_pid].tf_p->eax = pid;
 			}
 			else
 			{
@@ -188,7 +188,7 @@ void Kernel(tf_t *tf_p) // kernel directly enters here when interrupt occurs
 		case EXIT_INTR:
 			ExitISR();
 			break;
-}
+	}
 
 	Scheduler();                // select a process to run
 	set_cr3(pcbs[cur_pid].MT);

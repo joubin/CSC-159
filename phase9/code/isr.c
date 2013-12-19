@@ -223,12 +223,11 @@ void IRQ7ISR() {
 void ForkISR(int pid, int* addr, int size, int value)
 {
 	// Only thing new for ForkISR
-	int i, t_pid;
-    int * p;
-    int ramPages[5];
-    unsigned index;
-    int j = 0;
-    t_pid = -1;
+	int i;
+	int * p;
+	int ramPages[5];
+	int j = 0;
+
 	for(i=0;i<NUM_PAGE;i++) //TODO <-- Can I add both I and J like that?
 	{
 		if(pages[i].owner == -1)
@@ -247,58 +246,47 @@ void ForkISR(int pid, int* addr, int size, int value)
 		pcbs[cur_pid].tf_p->eax = -1; // TODO should be NOT_OK from opcodes
 		return;
 	}
-	t_pid = DeQ(&avail_q);
 
-	if (t_pid == -1)
-	{	
-		pcbs[cur_pid].tf_p->eax = -1;
-		return;
-	}
-	// The rest was a copy from spwnisr.
-	// pages[i].owner = pid;
-	// MyBzero((char *)VSTART, USER_STACK_SIZE);
-
-	// MyBzero((void *)user_stacks[pid], USER_STACK_SIZE);
-	// MyBzero(&mboxes[pid], sizeof(mbox_t));
 	for (i = 0; i < j; ++i)
 	{
-		pages[ramPages[i]].owner = t_pid;
+		pages[ramPages[i]].owner = pid;
 		MyBzero((void*)pages[ramPages[i]].addr, USER_STACK_SIZE);
 	}
 
+	//0 Main Table (MT): entries to look for subtables.
+	//1 Code Table (CT): entries to look for code pages.
+	//2 Stack Table (ST): entries to look for stack pages.
+	//3 Code Page (CP): executable code.
+	//4 Stack Page (SP): runtime stack, initially a trapframe.
 
-	//1 Main Table (MT): entries to look for subtables.
-	//2 Code Table (CT): entries to look for code pages.
-	//3 Stack Table (ST): entries to look for stack pages.
-	//4 Code Page (CP): executable code.
-	//5 Stack Page (SP): runtime stack, initially a trapframe.
+	// Get a pointer to the start of the first RAM page, which will contain the main table
+	p = (int *) pages[ramPages[0]].addr;
 
+	// Copy first 4 entries of the OS main table to the process main table
+	MyMemCpy((char *) p, (char *) OS_MT, sizeof(p) * 4);
 
-	p = (int*)pages[ramPages[0]].addr;
-	memcpy((void*)p, (void*)OS_MT, 16*4);	// first 16*3 from kernel pd
-	index = (unsigned int)VSTART >> 22;		//  first 10 bits of cp
-	*(p + index) = pages[ramPages[1]].addr + 3;		// ct to pd
-	index = (unsigned int)(VEND - sizeof(int) - sizeof(tf_t)) >> 10;	
-	*(p + index) = pages[ramPages[2]].addr + 3 ;		// put st address into pd
+	// Insert the code table address into the main table	
+	p = (int *) (pages[ramPages[0]].addr + (VSTART >> 22));
+	*p = pages[ramPages[1]].addr + 3;
+
+	// Insert the stack table address into the main table
+	p = (int *) (pages[ramPages[0]].addr + ((VEND - size_of(tf_t)) >> 22));
+	*p = pages[ramPages[2]].addr + 3;
+
+	// Insert the code page address into the code table
+	// We want to get the second group of digits in the address, so we shift left by 10 (to get rid of the first group of 10), then shift right by 22 as normal
+	p = (int *) (pages[ramPages[1]].addr + ((VSTART << 10) >> 22));
+	*p = pages[ramPages[3]].addr + 3;
 	
-	p = (int*)pages[ramPages[1]].addr;
-	index = (unsigned int)( VSTART & 0x9FFFFFC0 ) >> 10;	// grab the first 10 bits of virtual memory
-	*(p + index) = pages[ramPages[3]].addr ;		
+	// Insert the stack page address into the stack table
+	p = (int *) (pages[ramPages[2]].addr + (((VEND - size_of(tf_t)) << 10) >> 22));
+	*p = pages[ramPages[4]].addr + 3;
 	
-	p = (int*)pages[ramPages[2]].addr;
-	index = (unsigned int)( (VEND - sizeof(int) - sizeof(tf_t)) & 0x9FFFFFC0 ) >> 12;	//second 10 bits of CT
-	*(p + index) = pages[ramPages[4]].addr;		// sp == st
+	// Then, copy the program code into the code page
+	MyMemCpy((char *) pages[ramPages[3]].addr, (char *) addr, size);
 	
-	memcpy((void*)pages[ramPages[3]].addr, addr, size);
-
-    p = (int *) (VSTART + USER_STACK_SIZE);
-    p--;
-    *p = value;
-
-	pcbs[pid].tf_p = (tf_t*) p;
-	pcbs[pid].tf_p--;    // points to trap frame
-
-    memcpy((char *)(pages[i].addr), (char *)(addr), size);
+	// Finally, set up the stack page
+	pcbs[pid].tf_p = (tf_t*)(pages[ramPages[4]].addr + ((VEND - size_of(tf_t)) >> 22));
 
 	pcbs[pid].tf_p->eflags = EF_DEFAULT_VALUE|EF_INTR;
 
@@ -308,7 +296,7 @@ void ForkISR(int pid, int* addr, int size, int value)
 	pcbs[pid].tf_p->es = get_es();
 	pcbs[pid].tf_p->fs = get_fs();
 	pcbs[pid].tf_p->gs = get_gs();
-	pcbs[pid].tf_p = (tf_t*)(VEND - sizeof(int) - sizeof(tf_t));
+	// All done with pages
 
 	pcbs[pid].tick_count = pcbs[pid].total_tick_count = 0;
 	pcbs[pid].state = READY;
